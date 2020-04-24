@@ -29,13 +29,17 @@ fi;
 chmod 777 ~/.csm_update_checkpoint
 CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 
-if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
-    create_update_checkpoint
+function _dotfile_update() {
     setup_step "attempting dotfile update"
     curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | PS1="" bash --norc
     
     # reload (new) self
     source ~/.bashrc 
+}
+
+if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
+    create_update_checkpoint
+    _dotfile_update
     return
 fi; 
 
@@ -95,7 +99,7 @@ if [[ $(which git) == "" ]]; then
 fi;
 
 # Do i have kyrat? If not download it.
-if [[ -f ~/.local/share/kyrat ]]; then 
+if [[ ! -d ~/.local/share/kyrat ]]; then
     setup_step "cloning kyrat"
     git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat
 fi;
