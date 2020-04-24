@@ -22,13 +22,13 @@ function create_update_checkpoint() {
     echo echo $(( `date +%s` + $CSM_UPDATE_CHECKPOINT_IN_SECONDS )) > ~/.csm_update_checkpoint
 }
 
-if [[ ! -f ~/.csm_update_checkpoint ]] then
+if [[ ! -f ~/.csm_update_checkpoint ]]; then
     create_update_checkpoint
 fi;
 
 export CSM_UPDATE_CHECKPOINT=cat ~/.csm_update_checkpoint
 
-if [ "$CSM_UPDATE_CHECKPOINT" -lt `date +%s` ] then
+if [[ "$CSM_UPDATE_CHECKPOINT" < `date +%s` ]]; then
     create_update_checkpoint
     setup_step "attempting dotfile update"
     curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | bash
