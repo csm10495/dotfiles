@@ -32,16 +32,16 @@ CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 function _dotfile_update() {
     setup_step "attempting dotfile update"
     curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | PS1="" bash --norc
-    
+
     # reload (new) self
-    source ~/.bashrc 
+    source ~/.bashrc
 }
 
 if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
     create_update_checkpoint
     _dotfile_update
     return
-fi; 
+fi;
 
 # don't execute this again
 export CSM_BASHRC_EXECUTED=1
@@ -52,8 +52,8 @@ if [[ $(uname -s) == "Darwin" ]]; then
     export CSM_PACKAGE_MANAGER="brew"
 else
     export CSM_IS_LINUX_LIKE=1
-    
-    if [[ "$(which apt-get)" == "" ]]; then 
+
+    if [[ "$(which apt-get 2>/dev/null)" == "" ]]; then
         export CSM_PACKAGE_MANAGER="dnf"
     else
         export CSM_PACKAGE_MANAGER="apt-get"
@@ -86,14 +86,14 @@ export HISTSIZE=10000000
 
 # get brew if mac
 if [[ "$CSM_IS_MAC" == "1" ]]; then
-    if [[ $(which brew) == "" ]]; then 
+    if [[ $(which brew) == "" ]]; then
         setup_step "installing brew"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi;
 fi;
 
 # get git
-if [[ $(which git) == "" ]]; then 
+if [[ $(which git) == "" ]]; then
     setup_step "installing git"
     $(CSM_PACKAGE_MANAGER) install git -y
 fi;
@@ -101,15 +101,19 @@ fi;
 # Do i have kyrat? If not download it.
 if [[ ! -d ~/.local/share/kyrat ]]; then
     setup_step "cloning kyrat"
-    git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat
+    git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat 2>/dev/null
 fi;
 
 # add kyrat to path
 export PATH=$PATH:~/.local/share/kyrat/bin
 
-# auto use kyrat as ssh
-alias _ssh="`which ssh`"
-function ssh() {
-  printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
-  kyrat "$@"
-}
+# if we can't find kyrat, don't mess with ssh anymore
+if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
+    # auto use kyrat as ssh
+    alias _ssh="`which ssh`"
+    function ssh() {
+    printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
+    kyrat "$@"
+    }
+fi;
+
