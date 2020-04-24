@@ -19,7 +19,7 @@ export CSM_UPDATE_CHECKPOINT_IN_SECONDS=86400
 
 function create_update_checkpoint() {
     setup_step creating update checkpoint
-    echo echo $(( `date +%s` + $CSM_UPDATE_CHECKPOINT_IN_SECONDS )) > ~/.csm_update_checkpoint
+    echo $(( `date +%s` + $CSM_UPDATE_CHECKPOINT_IN_SECONDS )) > ~/.csm_update_checkpoint
 }
 
 if [[ ! -f ~/.csm_update_checkpoint ]]; then
