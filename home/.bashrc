@@ -26,7 +26,8 @@ if [[ ! -f ~/.csm_update_checkpoint ]]; then
     create_update_checkpoint
 fi;
 
-CSM_UPDATE_CHECKPOINT=cat ~/.csm_update_checkpoint
+chmod 777 ~/.csm_update_checkpoint
+CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 
 if [[ "$CSM_UPDATE_CHECKPOINT" < `date +%s` ]]; then
     create_update_checkpoint
