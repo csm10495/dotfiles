@@ -101,7 +101,7 @@ fi;
 # Do i have kyrat? If not download it.
 if [[ ! -d ~/.local/share/kyrat ]]; then
     setup_step "cloning kyrat"
-    git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat 2>/dev/null
+    git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat &>/dev/null
 fi;
 
 # add kyrat to path
