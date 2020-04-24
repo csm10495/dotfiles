@@ -18,7 +18,7 @@ export HOMEBREW_AUTO_UPDATE_SECS=864000
 export CSM_UPDATE_CHECKPOINT_IN_SECONDS=86400
 
 function create_update_checkpoint() {
-    setup_step creating update checkpoint
+    setup_step "creating update checkpoint"
     echo $(( `date +%s` + $CSM_UPDATE_CHECKPOINT_IN_SECONDS )) > ~/.csm_update_checkpoint
 }
 
@@ -29,7 +29,7 @@ fi;
 chmod 777 ~/.csm_update_checkpoint
 CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 
-if [[ "$CSM_UPDATE_CHECKPOINT" < `date +%s` ]]; then
+if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
     create_update_checkpoint
     setup_step "attempting dotfile update"
     curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | PS1="" bash --norc
