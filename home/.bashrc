@@ -40,7 +40,7 @@ function _nonzero_return_code() {
 export PS1="\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\] \[\e[36;41m\]\`_nonzero_return_code\`\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
 export CLICOLOR=1
 export LSCOLORS=ExFxBxDxCxegedabagacad
-if [[ $CSM_IS_MAC == "1" ]]; then
+if [[ "$CSM_IS_MAC" == "1" ]]; then
     alias ls='ls -GFh'
 else
     alias ls='ls -C --color=auto -h'
@@ -56,7 +56,7 @@ export HISTSIZE=10000000
 # Install and post install steps
 
 # get brew if mac
-if [[ $CSM_IS_MAC == "1" ]]; then
+if [[ "$CSM_IS_MAC" == "1" ]]; then
     if [[ $(which brew) == "" ]]; then 
         setup_step "installing brew"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
