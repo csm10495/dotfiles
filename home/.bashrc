@@ -8,14 +8,38 @@ function setup_step() {
     echo "dotfile setup: $1"
 }
 
-# don't execute this again
-export CSM_BASHRC_EXECUTED=1
-
 # To get it to not ask me to use zsh
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
 # check for homebrew updates once every 10 days instead of multiple times
 export HOMEBREW_AUTO_UPDATE_SECS=864000
+
+# setup an update checkpoint for my dotfiles
+export CSM_UPDATE_CHECKPOINT_IN_SECONDS=86400
+
+function create_update_checkpoint() {
+    setup_step creating update checkpoint
+    echo echo $(( `date +%s` + $CSM_UPDATE_CHECKPOINT_IN_SECONDS )) > ~/.csm_update_checkpoint
+}
+
+if [[ ! -f ~/.csm_update_checkpoint ]] then
+    create_update_checkpoint
+fi;
+
+export CSM_UPDATE_CHECKPOINT=cat ~/.csm_update_checkpoint
+
+if [ "$CSM_UPDATE_CHECKPOINT" -lt `date +%s` ] then
+    create_update_checkpoint
+    setup_step "attempting dotfile update"
+    curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | bash
+    
+    # reload (new) self
+    source ~/.bashrc 
+    exit 0
+fi; 
+
+# don't execute this again
+export CSM_BASHRC_EXECUTED=1
 
 # is this a mac?
 if [[ $(uname -s) == "Darwin" ]]; then
