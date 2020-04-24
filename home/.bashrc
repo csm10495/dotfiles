@@ -31,7 +31,7 @@ CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 
 function _dotfile_update() {
     setup_step "attempting dotfile update"
-    curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | PS1="" bash --norc
+    curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | PS1="" bash --norc &>/dev/null
 
     # reload (new) self
     source ~/.bashrc
@@ -54,7 +54,11 @@ else
     export CSM_IS_LINUX_LIKE=1
 
     if [[ "$(which apt-get 2>/dev/null)" == "" ]]; then
-        export CSM_PACKAGE_MANAGER="dnf"
+        if [[ "$(which dnf 2>/dev/null)" == "" ]]; then
+            export CSM_PACKAGE_MANAGER="yum"
+        else
+            export CSM_PACKAGE_MANAGER="dnf"
+        fi;
     else
         export CSM_PACKAGE_MANAGER="apt-get"
     fi;
