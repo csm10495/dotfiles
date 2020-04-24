@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$CSM_BASHRC_EXECUTED" = "1" ]; then
-    exit 0
+    return
 fi;
 
 function setup_step() {
@@ -32,11 +32,11 @@ CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 if [[ "$CSM_UPDATE_CHECKPOINT" < `date +%s` ]]; then
     create_update_checkpoint
     setup_step "attempting dotfile update"
-    curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | bash
+    curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | PS1="" bash --norc
     
     # reload (new) self
     source ~/.bashrc 
-    exit 0
+    return
 fi; 
 
 # don't execute this again
