@@ -70,7 +70,7 @@ if [[ $(which git) == "" ]]; then
 fi;
 
 # Do i have kyrat? If not download it.
-if [[ $(which kyrat) == "" ]]; then 
+if [[ -f ~/.local/share/kyrat ]]; then 
     setup_step "cloning kyrat"
     git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat
 fi;
