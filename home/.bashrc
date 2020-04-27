@@ -121,3 +121,7 @@ if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
     }
 fi;
 
+# ensure we have the global profile info
+if [[ -f /etc/profile ]]; then
+    source /etc/profile
+fi;
