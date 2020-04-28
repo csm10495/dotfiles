@@ -92,6 +92,10 @@ export EDITOR=nano
 export HISTFILESIZE=10000000
 export HISTSIZE=10000000
 
+# see https://github.com/pypa/pipenv/issues/187
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
 # Install and post install steps
 
 # get brew if mac
