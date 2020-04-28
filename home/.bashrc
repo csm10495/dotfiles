@@ -96,6 +96,9 @@ export HISTSIZE=10000000
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 
+https://superuser.com/questions/848516/long-commands-typed-in-bash-overwrite-the-same-line
+export TERM=xterm
+
 # Install and post install steps
 
 # get brew if mac
