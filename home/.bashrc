@@ -4,6 +4,11 @@ if [ "$CSM_BASHRC_EXECUTED" = "1" ]; then
     return
 fi;
 
+# ensure we have the global profile info
+if [[ -f /etc/profile ]]; then
+    source /etc/profile
+fi;
+
 function setup_step() {
     echo "dotfile setup: $1"
 }
@@ -119,9 +124,4 @@ if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
     printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
     kyrat "$@"
     }
-fi;
-
-# ensure we have the global profile info
-if [[ -f /etc/profile ]]; then
-    source /etc/profile
 fi;
