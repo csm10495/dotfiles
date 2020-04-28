@@ -58,10 +58,13 @@ if [[ $(uname -s) == "Darwin" ]]; then
     export CSM_PACKAGE_MANAGER="brew"
 else
     export CSM_IS_LINUX_LIKE=1
+    export CSM_PACKAGE_MANAGER=""
 
     if [[ "$(which apt-get 2>/dev/null)" == "" ]]; then
         if [[ "$(which dnf 2>/dev/null)" == "" ]]; then
-            export CSM_PACKAGE_MANAGER="yum"
+            if [[ "$(which yum 2>/dev/null)" != "" ]]; then
+                export CSM_PACKAGE_MANAGER="yum"
+            fi;
         else
             export CSM_PACKAGE_MANAGER="dnf"
         fi;
@@ -103,20 +106,20 @@ export TERM=xterm
 
 # get brew if mac
 if [[ "$CSM_IS_MAC" == "1" ]]; then
-    if [[ $(which brew) == "" ]]; then
+    if [[ $(which brew 2>/dev/null) == "" ]]; then
         setup_step "installing brew"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi;
 fi;
 
-# get git
-if [[ $(which git) == "" ]]; then
-    setup_step "installing git"
-    $(CSM_PACKAGE_MANAGER) install git -y
+# check if i have git
+export CSM_HAS_GIT=0
+if [[ $(which git 2>/dev/null) != "" ]]; then
+    export CSM_HAS_GIT=1
 fi;
 
 # Do i have kyrat? If not download it.
-if [[ ! -d ~/.local/share/kyrat ]]; then
+if [[ (! -d ~/.local/share/kyrat) && ("$CSM_HAS_GIT" == "1") ]]; then
     setup_step "cloning kyrat"
     git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat &>/dev/null
 fi;
