@@ -91,6 +91,10 @@ fi;
 # to get nano as the default editor in terminal
 export EDITOR=nano
 
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
 # make history huge
 export HISTFILESIZE=10000000
 export HISTSIZE=10000000
@@ -102,6 +106,15 @@ export LANG=en_US.UTF-8
 #https://superuser.com/questions/848516/long-commands-typed-in-bash-overwrite-the-same-line
 export TERM=xterm
 set horizontal-scroll-mode-off
+
+# some more ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
 
 # Install and post install steps
 
