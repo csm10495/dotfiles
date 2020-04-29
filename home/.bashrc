@@ -74,12 +74,18 @@ else
 fi;
 
 # to get a colorful terminal
-function _nonzero_return_code() {
+function _set_ps1() {
     RETVAL=$?
-    [ $RETVAL -ne 0 ] && printf "$RETVAL\e[0m "
+    if [[ $RETVAL == "0" ]]; then
+        RETVAL=""
+    else
+        RETVAL="$RETVAL\[\e[0m\] "
+    fi;
+    
+    export PS1="\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\] \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
 }
+export PROMPT_COMMAND=_set_ps1
 
-export PS1="\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\] \[\e[97;41m\]\`_nonzero_return_code\`\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
 export CLICOLOR=1
 export LSCOLORS=ExFxBxDxCxegedabagacad
 if [[ "$CSM_IS_MAC" == "1" ]]; then
