@@ -34,7 +34,7 @@ fi;
 chmod 777 ~/.csm_update_checkpoint
 CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 
-function _dotfile_update() {
+function _update_dotfiles() {
     setup_step "attempting dotfile update"
     curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | PS1="" bash --norc &>/dev/null
     
@@ -45,7 +45,7 @@ function _dotfile_update() {
 
 if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
     create_update_checkpoint
-    _dotfile_update
+    _update_dotfiles
     return
 fi;
 
@@ -125,12 +125,17 @@ shopt -s checkwinsize
 ## Key bindings
 ### Tested on WSL Bash
 
-
 # Ctrl-Del to delete next word
 bind '"\e[3;5~":kill-word'
 
 # Ctrl-Backspace to delete last word
 bind "\C-h":backward-kill-word
+
+# Arrow up to do a history search back
+"\e[A":history-search-backward
+
+# Arrow down to do a history search forward
+"\e[B":history-search-forward
 
 # Install and post install steps
 
