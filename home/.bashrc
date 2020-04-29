@@ -116,6 +116,16 @@ alias l='ls -CF'
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
+## Key bindings
+### Tested on WSL Bash
+
+
+# Ctrl-Del to delete next word
+bind '"\e[3;5~":kill-word'
+
+# Ctrl-Backspace to delete last word
+bind "\C-h":backward-kill-word
+
 # Install and post install steps
 
 # get brew if mac
