@@ -132,10 +132,10 @@ bind '"\e[3;5~":kill-word'
 bind "\C-h":backward-kill-word
 
 # Arrow up to do a history search back
-"\e[A":history-search-backward
+bind "\e[A":history-search-backward
 
 # Arrow down to do a history search forward
-"\e[B":history-search-forward
+bind "\e[B":history-search-forward
 
 # Install and post install steps
 
