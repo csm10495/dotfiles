@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # export all functions
-set +a
+set -a
 
 # removing this check for now.
 #if [ "$CSM_BASHRC_EXECUTED" = "1" ]; then
@@ -190,4 +190,4 @@ if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
 fi;
 
 # stop exporting all functions
-set -a
+set +a
