@@ -61,7 +61,7 @@ export CSM_BASHRC_VERSION="REPLACE_WITH_VERSION"
 
 if [[ "$CSM_BASHRC_VERSION" != "" ]]; then
     if [[ "$CSM_BASHRC_VERSION" != "REPLACE_WITH_VERSION" ]]; then
-        printf "\e[44mcsm10495/dotfiles: $CSM_BASHRC_VERSION\e[49m"
+        printf "\e[44mcsm10495/dotfiles: $CSM_BASHRC_VERSION\e[49m\n"
     fi
 fi
 
