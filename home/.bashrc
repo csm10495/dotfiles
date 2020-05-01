@@ -185,7 +185,11 @@ if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
     alias _ssh="`which ssh`"
     function ssh() {
     printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
+    
+    # kyrat will source... don't take its definitions.
+    set +a
     kyrat "$@"
+    set -a
     }
 fi;
 
