@@ -53,6 +53,9 @@ fi;
 # don't execute this again
 export CSM_BASHRC_EXECUTED=1
 
+# install.sh should fill in the actual repo hash here.
+export CSM_BASHRC_HASH="REPLACE_WITH_REPO_HASH"
+
 # is this a mac?
 if [[ $(uname -s) == "Darwin" ]]; then
     export CSM_IS_MAC=1
