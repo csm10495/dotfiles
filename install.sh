@@ -1,6 +1,30 @@
 #!/bin/bash
 
+if [[ `which curl 2>/dev/null` == "" ]]; then
+    echo "curl is required to run this script. Please install it and re-run!"
+    exit 1
+fi
+
 curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/home/.bash_profile > ~/.bash_profile
 curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/home/.bashrc > ~/.bashrc
+
+COMMIT_HASH=``
+
+PYTHON=""
+
+if [[ `which python3 2>/dev/null` != "" ]]; then
+    PYTHON="python3"
+elif [[ `which python 2>/dev/null` != "" ]]; then
+    PYTHON="python"
+elif [[ `which python2 2>/dev/null` != "" ]]; then
+    PYTHON="python2"
+fi
+
+if [[ "$PYTHON" != "" ]]; then
+    COMMIT_HASH=`curl -s https://api.github.com/repos/csm10495/dotfiles/branches/master | $PYTHON -c "import json; print(json.loads('''$a'''.replace('\\n', ''))['commit']['sha'].upper())" 2>/dev/null`
+    if [[ "$COMMIT_HASH" != "" ]]; then
+        sed 's/REPLACE_WITH_REPO_HASH/$COMMIT_HASH/g' ~/.bashrc
+    fi
+fi
 
 echo Done!
