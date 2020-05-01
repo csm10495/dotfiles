@@ -190,8 +190,9 @@ if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
     function ssh() {
     printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
     kyrat "$@"
-    set -a
+    return $?
     }
+    set -a
 fi;
 
 # stop exporting all functions
