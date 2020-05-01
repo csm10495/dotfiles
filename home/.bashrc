@@ -181,13 +181,14 @@ export PATH=$PATH:~/.local/share/kyrat/bin
 
 # if we can't find kyrat, don't mess with ssh anymore
 if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
-    # auto use kyrat as ssh
-    alias _ssh="`which ssh`"
-    function ssh() {
-    printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
-    
     # kyrat will source... don't take its definitions.
     set +a
+    # auto use kyrat as ssh
+    unalias _ssh 2>/dev/null
+    alias _ssh="`which ssh`"
+    
+    function ssh() {
+    printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
     kyrat "$@"
     set -a
     }
