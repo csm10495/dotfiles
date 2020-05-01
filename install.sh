@@ -21,7 +21,7 @@ fi
 if [[ "$PYTHON" != "" ]]; then
     COMMIT_HASH=`curl -s https://api.github.com/repos/csm10495/dotfiles/branches/master | $PYTHON -c "import sys, json; print(json.loads(sys.stdin.read())['commit']['sha'].upper())" 2>/dev/null`
     if [[ "$COMMIT_HASH" != "" ]]; then
-        sed "s/REPLACE_WITH_REPO_HASH/$COMMIT_HASH/g" ~/.bashrc > ~/.bashrc 
+        echo $COMMIT_HASH | $PYTHON -c "import os, sys; text = open(os.path.expanduser('~/.bashrc'), 'r').read();open(os.path.expanduser('~/.bashrc'), 'w').write(text.replace('REPLACE_WITH_REPO_HASH', sys.stdin.read()))"
     fi
 fi
 
