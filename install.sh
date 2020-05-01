@@ -21,7 +21,7 @@ elif [[ `which python2 2>/dev/null` != "" ]]; then
 fi
 
 if [[ "$PYTHON" != "" ]]; then
-    COMMIT_HASH=`curl -s https://api.github.com/repos/csm10495/dotfiles/branches/master | $PYTHON -c "import json; print(json.loads('''$a'''.replace('\\n', ''))['commit']['sha'].upper())" 2>/dev/null`
+    COMMIT_HASH=`curl -s https://api.github.com/repos/csm10495/dotfiles/branches/master | $PYTHON -c "import sys, json; print(json.loads(sys.stdin.read())['commit']['sha'].upper())" 2>/dev/null`
     if [[ "$COMMIT_HASH" != "" ]]; then
         sed 's/REPLACE_WITH_REPO_HASH/$COMMIT_HASH/g' ~/.bashrc
     fi
