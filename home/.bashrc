@@ -1,8 +1,9 @@
 #!/bin/bash
 
-if [ "$CSM_BASHRC_EXECUTED" = "1" ]; then
-    return
-fi;
+# removing this check for now.
+#if [ "$CSM_BASHRC_EXECUTED" = "1" ]; then
+#    return
+#fi;
 
 # ensure we have the global profile info
 if [[ -f /etc/profile ]]; then
@@ -43,6 +44,7 @@ function _update_dotfiles() {
         source ~/.bashrc
     fi;
 }
+export -f _update_dotfiles
 
 if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
     create_update_checkpoint
