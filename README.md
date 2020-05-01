@@ -14,5 +14,5 @@ curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | 
 To update (THIS WILL OVERWRITE ANY CHANGES YOU'VE MADE). Call this in bash:
 
 ``
-_update_dotfiles`
+_update_dotfiles
 ``
