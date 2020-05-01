@@ -47,7 +47,6 @@ function _update_dotfiles() {
         source ~/.bashrc
     fi;
 }
-export -f _update_dotfiles
 
 if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
     create_update_checkpoint
@@ -102,7 +101,6 @@ function _set_ps1() {
     
     export PS1="\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\] \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
 }
-export -f _set_ps1
 export PROMPT_COMMAND=_set_ps1
 
 export CLICOLOR=1
