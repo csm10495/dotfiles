@@ -8,8 +8,6 @@ fi
 curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/home/.bash_profile > ~/.bash_profile
 curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/home/.bashrc > ~/.bashrc
 
-COMMIT_HASH=``
-
 PYTHON=""
 
 if [[ `which python3 2>/dev/null` != "" ]]; then
@@ -23,7 +21,7 @@ fi
 if [[ "$PYTHON" != "" ]]; then
     COMMIT_HASH=`curl -s https://api.github.com/repos/csm10495/dotfiles/branches/master | $PYTHON -c "import sys, json; print(json.loads(sys.stdin.read())['commit']['sha'].upper())" 2>/dev/null`
     if [[ "$COMMIT_HASH" != "" ]]; then
-        sed 's/REPLACE_WITH_REPO_HASH/$COMMIT_HASH/g' ~/.bashrc
+        sed "s/REPLACE_WITH_REPO_HASH/$COMMIT_HASH/g" ~/.bashrc > ~/.bashrc 
     fi
 fi
 
