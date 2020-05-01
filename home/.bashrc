@@ -60,7 +60,7 @@ export CSM_BASHRC_HASH="REPLACE_WITH_REPO_HASH"
 export CSM_BASHRC_VERSION="REPLACE_WITH_VERSION"
 
 if [[ "$CSM_BASHRC_VERSION" != "" ]]; then
-    if [[ "$CSM_BASHRC_VERSION" != "REPLACE_WITH_VERSION" ]]; then
+    if [[ "$CSM_BASHRC_VERSION" != REPLACE_WITH_VERSIO* ]]; then
         printf "\e[44mcsm10495/dotfiles: $CSM_BASHRC_VERSION\e[49m\n"
     fi
 fi
