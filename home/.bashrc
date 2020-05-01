@@ -59,6 +59,12 @@ export CSM_BASHRC_HASH="REPLACE_WITH_REPO_HASH"
 # install.sh should fill in the version here.
 export CSM_BASHRC_VERSION="REPLACE_WITH_VERSION"
 
+if [[ "$CSM_BASHRC_VERSION" != "" ]]; then
+    if [[ "$CSM_BASHRC_VERSION" != "REPLACE_WITH_VERSION" ]]; then
+        printf "\e[44mcsm10495/dotfiles: $CSM_BASHRC_VERSION\e[49m"
+    fi
+fi
+
 # is this a mac?
 if [[ $(uname -s) == "Darwin" ]]; then
     export CSM_IS_MAC=1
