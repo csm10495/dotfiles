@@ -226,8 +226,8 @@ export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/usr/bin:~/.local/usr/local/b
 
 # i'd greatly prefer nano to vi so see if we can get it.
 CSM_NANO=""
-if [[ "$(which nano 2>/dev/null)" == "" ]]; then
-    CSM_NANO="nano"
+if [[ "$(_csm_cmd_exists nano)" == "true" ]]; then
+    CSM_NANO=`which nano`
 else
     _csm_user_package_install nano
     if [[ $? == 0 ]]; then
