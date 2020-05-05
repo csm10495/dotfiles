@@ -111,9 +111,6 @@ else
     alias ls='ls -C --color=auto -h'
 fi;
 
-# to get nano as the default editor in terminal
-export EDITOR=nano
-
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
@@ -176,8 +173,18 @@ if [[ (! -d ~/.local/share/kyrat) && ("$CSM_HAS_GIT" == "1") ]]; then
     git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat &>/dev/null
 fi;
 
-# add kyrat to path
-export PATH=$PATH:~/.local/share/kyrat/bin
+# add kyrat (and a local bin) to path
+export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/bin
+
+$CSM_NANO=""
+if [[ "$(which nano 2>/dev/null)" == "" ]]; then
+    $CSM_NANO="nano"
+fi;
+
+# should we try to get yum-utils then use yumdownloader then https://superuser.com/questions/209808/how-can-i-install-an-rpm-without-being-root ... hmm
+
+# to get nano as the default editor in terminal
+export EDITOR=$CSM_NANO
 
 # if we can't find kyrat, don't mess with ssh anymore
 if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
