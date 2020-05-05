@@ -41,7 +41,7 @@ CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 function _update_dotfiles() {
     setup_step "attempting dotfile update"
     curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | PS1="" bash --norc &>/dev/null
-    if [[ $? == 0 ]]; then 
+    if [[ $? == 0 ]]; then
         # reload (new) self
         export CSM_BASHRC_EXECUTED=0
         source ~/.bashrc
@@ -69,26 +69,65 @@ if [[ "$CSM_BASHRC_VERSION" != "" ]]; then
     fi
 fi
 
+function _csm_cmd_exists() {
+    if [[ "$(which "$1" 2>/dev/null)" != "" ]]; then
+        echo "true"
+    else
+        echo "false"
+    fi;
+}
+
+function _csm_cmd_not_exists() {
+    if [[ "$(which "$1" 2>/dev/null)" != "" ]]; then
+        echo "false"
+    else
+        echo "true"
+    fi;
+}
+
+function _csm_user_package_install() {
+    # default does nothing
+    return 1
+}
+
+# ensure .local exists
+mkdir -p ~/.local
+
 # is this a mac?
 if [[ $(uname -s) == "Darwin" ]]; then
     export CSM_IS_MAC=1
-    export CSM_PACKAGE_MANAGER="brew"
+    if [[ "$(_csm_cmd_exists brew)" == "true" ]]; then
+        function _csm_user_package_install() {
+            brew install $1
+            return $?
+        }
+    fi
 else
     export CSM_IS_LINUX_LIKE=1
-    export CSM_PACKAGE_MANAGER=""
-
-    if [[ "$(which apt-get 2>/dev/null)" == "" ]]; then
-        if [[ "$(which dnf 2>/dev/null)" == "" ]]; then
-            if [[ "$(which yum 2>/dev/null)" != "" ]]; then
-                export CSM_PACKAGE_MANAGER="yum"
-            fi;
-        else
-            export CSM_PACKAGE_MANAGER="dnf"
-        fi;
-    else
-        export CSM_PACKAGE_MANAGER="apt-get"
-    fi;
-fi;
+    if [[ "$(_csm_cmd_exists apt-get)" == "true" ]]; then
+        true # todo.
+    elif [[ "$(_csm_cmd_exists yum)" == "true" ]]; then
+        # yum supported
+        if [[ "$(_csm_cmd_exists yumdownloader)" == "true" ]]; then
+            function _csm_user_package_install() {
+                _TEMP_DIR=`mktemp -d`
+                _RET=-1
+                pushd "$_TEMP_DIR" > /dev/null
+                yumdownloader $1 --resolve &>/dev/null
+                popd > /dev/null
+                if [[ $? == 0 ]]; then
+                    pushd "$HOME/.local" > /dev/null
+                    for filename in $_TEMP_DIR/*.rpm; do
+                        rpm2cpio "$filename" 2>/dev/null | cpio -idv 2>/dev/null
+                    done
+                    _RET=$?
+                    popd > /dev/null
+                fi;
+                return $_RET
+            }
+        fi
+    fi
+fi
 
 # to get a colorful terminal
 function _set_ps1() {
@@ -98,7 +137,7 @@ function _set_ps1() {
     else
         RETVAL="$RETVAL\[\e[0m\] "
     fi;
-    
+
     export PS1="\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\] \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
 }
 export PROMPT_COMMAND=_set_ps1
@@ -120,8 +159,8 @@ export HISTFILESIZE=10000000
 export HISTSIZE=10000000
 
 # see https://github.com/pypa/pipenv/issues/187
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8 2>/dev/null
+export LANG=en_US.UTF-8 2>/dev/null
 
 #https://superuser.com/questions/848516/long-commands-typed-in-bash-overwrite-the-same-line
 export TERM=xterm
@@ -173,33 +212,49 @@ if [[ (! -d ~/.local/share/kyrat) && ("$CSM_HAS_GIT" == "1") ]]; then
     git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat &>/dev/null
 fi;
 
-# add kyrat (and a local bin) to path
-export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/bin
-
-$CSM_NANO=""
-if [[ "$(which nano 2>/dev/null)" == "" ]]; then
-    $CSM_NANO="nano"
+# add local lib paths (only support x64 and x86)
+if [[ "$(uname -m)" == "x86_64" ]]; then
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/usr/lib64/
+else
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/usr/lib/
 fi;
 
-# should we try to get yum-utils then use yumdownloader then https://superuser.com/questions/209808/how-can-i-install-an-rpm-without-being-root ... hmm
+# add kyrat (and a local bin) to path
+mkdir -p ~/.local/usr/local/bin
+mkdir -p ~/.local/usr/bin
+export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/usr/bin:~/.local/usr/local/bin
+
+# i'd greatly prefer nano to vi so see if we can get it.
+CSM_NANO=""
+if [[ "$(which nano 2>/dev/null)" == "" ]]; then
+    CSM_NANO="nano"
+else
+    _csm_user_package_install nano
+    if [[ $? == 0 ]]; then
+        echo "... installed nano"
+        CSM_NANO=`which nano`
+    fi
+fi;
 
 # to get nano as the default editor in terminal
 export EDITOR=$CSM_NANO
 
 # if we can't find kyrat, don't mess with ssh anymore
-if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
-    # kyrat will source... don't take its definitions.
-    set +a
-    # auto use kyrat as ssh
-    unalias _ssh 2>/dev/null
-    alias _ssh="`which ssh`"
-    
-    function ssh() {
-    printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
-    kyrat "$@"
-    return $?
-    }
-    set -a
+if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
+    if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
+        # kyrat will source... don't take its definitions.
+        set +a
+        # auto use kyrat as ssh
+        unalias _ssh 2>/dev/null
+        alias _ssh="`which ssh`"
+
+        function ssh() {
+            printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
+            kyrat "$@"
+            return $?
+        }
+        set -a
+    fi;
 fi;
 
 # stop exporting all functions
