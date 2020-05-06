@@ -129,6 +129,12 @@ else
     fi
 fi
 
+# check if i have git
+export CSM_HAS_GIT=0
+if [[ $(which git 2>/dev/null) != "" ]]; then
+    export CSM_HAS_GIT=1
+fi;
+
 # to get a colorful terminal
 function _set_ps1() {
     RETVAL=$?
@@ -138,7 +144,23 @@ function _set_ps1() {
         RETVAL="$RETVAL\[\e[0m\] "
     fi;
 
-    export PS1="\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\] \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
+    _GIT_INFO=""
+    if [[ "$CSM_HAS_GIT" == 1 ]]; then
+        _BRANCH=`git rev-parse --abbrev-ref HEAD 2>/dev/null`
+
+        if [[ "$_BRANCH" != "" ]]; then
+            # see https://stackoverflow.com/a/5143914/3824093
+            git diff-index --quiet HEAD 2>/dev/null
+            if [[ "$?" != "0" ]]; then
+                _EXTRA_STUFF="+"
+            else
+                _EXTRA_STUFF=""
+            fi
+            _GIT_INFO=" ($_BRANCH$_EXTRA_STUFF)"
+        fi
+    fi
+
+    export PS1="\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\]$_GIT_INFO \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
 }
 export PROMPT_COMMAND=_set_ps1
 
@@ -198,12 +220,6 @@ if [[ "$CSM_IS_MAC" == "1" ]]; then
         setup_step "installing brew"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi;
-fi;
-
-# check if i have git
-export CSM_HAS_GIT=0
-if [[ $(which git 2>/dev/null) != "" ]]; then
-    export CSM_HAS_GIT=1
 fi;
 
 # Do i have kyrat? If not download it.
