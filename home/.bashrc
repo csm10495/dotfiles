@@ -150,11 +150,13 @@ function _set_ps1() {
 
         if [[ "$_BRANCH" != "" ]]; then
             # see https://stackoverflow.com/a/5143914/3824093
-            git diff-index --quiet HEAD 2>/dev/null
-            if [[ "$?" != "0" ]]; then
-                _EXTRA_STUFF="+"
-            else
+            _OUT=`git status -s -uno 2>/dev/null`
+
+            # no output means no changes
+            if [[ "$_OUT" == "" ]]; then
                 _EXTRA_STUFF=""
+            else
+                _EXTRA_STUFF="+"
             fi
             _GIT_INFO=" ($_BRANCH$_EXTRA_STUFF)"
         fi
