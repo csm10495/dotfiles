@@ -65,7 +65,7 @@ export CSM_BASHRC_VERSION="REPLACE_WITH_VERSION"
 
 if [[ "$CSM_BASHRC_VERSION" != "" ]]; then
     if [[ "$CSM_BASHRC_VERSION" != REPLACE_WITH_VERSIO* ]]; then
-        printf "\e[44mcsm10495/dotfiles: v$CSM_BASHRC_VERSION\e[49m";sleep .25;printf "\r"
+        printf "\e[44mcsm10495/dotfiles: v$CSM_BASHRC_VERSION\e[49m";sleep .25;printf "\r                                        \r"
     fi
 fi
 
@@ -98,7 +98,7 @@ if [[ $(uname -s) == "Darwin" ]]; then
     export CSM_IS_MAC=1
     if [[ "$(_csm_cmd_exists brew)" == "true" ]]; then
         function _csm_user_package_install() {
-            brew install $1
+            brew install $1 &> /dev/null
             return $?
         }
     fi
