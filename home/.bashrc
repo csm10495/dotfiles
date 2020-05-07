@@ -42,7 +42,8 @@ function _update_dotfiles() {
     setup_step "attempting dotfile update"
     _INSTALL_SCRIPT=`curl -m 1 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh`
     if [[ $? == 0 ]]; then
-        $_INSTALL_SCRIPT | PS1="" bash --norc &>/dev/null
+        PS1="" bash --norc -c "$_INSTALL_SCRIPT" &>/dev/null  
+        
         # reload (new) self
         export CSM_BASHRC_EXECUTED=0
         source ~/.bashrc
