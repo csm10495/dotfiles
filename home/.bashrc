@@ -275,5 +275,10 @@ if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
     fi;
 fi;
 
+# Load git autocompletion if we have git
+if [[ "$CSM_HAS_GIT" == "1" && -f ~/.git-completion.bash ]]; then
+    source ~/.git-completion.bash
+fi
+
 # stop exporting all functions
 set +a

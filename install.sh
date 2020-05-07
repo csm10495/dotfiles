@@ -33,4 +33,7 @@ else
     curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/home/.bashrc > ~/.bashrc
 fi
 
+# Lets also add git-completion
+curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash > ~/.git-completion.bash
+
 echo Done!
