@@ -40,8 +40,10 @@ CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 
 function _update_dotfiles() {
     setup_step "attempting dotfile update"
-    curl -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh | PS1="" bash --norc &>/dev/null
+    _INSTALL_SCRIPT=`curl -m 1 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh`
     if [[ $? == 0 ]]; then
+        PS1="" bash --norc -c "$_INSTALL_SCRIPT" &>/dev/null  
+        
         # reload (new) self
         export CSM_BASHRC_EXECUTED=0
         source ~/.bashrc
