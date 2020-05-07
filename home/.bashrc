@@ -146,7 +146,10 @@ function _set_ps1() {
 
     _GIT_INFO=""
     if [[ "$CSM_HAS_GIT" == 1 ]]; then
-        _BRANCH=`git name-rev --name-only HEAD 2>/dev/null`
+        _BRANCH=`git rev-parse --abbrev-ref HEAD 2>/dev/null`
+        if [[ "$_BRANCH" == "HEAD" ]]; then
+            _BRANCH=`git name-rev --name-only HEAD 2>/dev/null`
+        fi
 
         if [[ "$_BRANCH" != "" ]]; then
             # see https://stackoverflow.com/a/5143914/3824093
