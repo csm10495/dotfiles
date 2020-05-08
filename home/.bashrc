@@ -277,7 +277,6 @@ if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
             kyrat "$@"
             return $?
         }
-        export -f ssh
     fi;
 fi;
 
