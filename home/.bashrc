@@ -40,10 +40,10 @@ CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 
 function _update_dotfiles() {
     setup_step "attempting dotfile update"
-    _INSTALL_SCRIPT=`curl -m 1 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh`
+    _INSTALL_SCRIPT=`curl --connect-timeout 1 --max-time 1 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh`
     if [[ $? == 0 ]]; then
-        PS1="" bash --norc -c "$_INSTALL_SCRIPT" &>/dev/null  
-        
+        PS1="" bash --norc -c "$_INSTALL_SCRIPT" &>/dev/null
+
         # reload (new) self
         export CSM_BASHRC_EXECUTED=0
         source ~/.bashrc
@@ -229,10 +229,23 @@ if [[ "$CSM_IS_MAC" == "1" ]]; then
     fi;
 fi;
 
+# Do i have a command to timeout 'long-running' commands
+CSM_TIMEOUT_CMD_TIMEOUT='3s'
+CSM_TIMEOUT_CMD=''
+if [[ "$(_csm_cmd_exists timeout)" == "true" ]]; then
+    CSM_TIMEOUT_CMD="timeout -k 1s $CSM_TIMEOUT_CMD_TIMEOUT"
+elif [[ "$(_csm_cmd_exists gtimeout)" == "true" ]]; then
+    CSM_TIMEOUT_CMD="gtimeout -k 1s $CSM_TIMEOUT_CMD_TIMEOUT"
+fi;
+
 # Do i have kyrat? If not download it.
 if [[ (! -d ~/.local/share/kyrat) && ("$CSM_HAS_GIT" == "1") ]]; then
     setup_step "cloning kyrat"
-    git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat &>/dev/null
+    $CSM_TIMEOUT_CMD git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat &>/dev/null
+    if [[ "$?" != "0" ]]; then
+        setup_step "kyrat clone failed"
+        rm -rf ~/.local/share/kyrat
+    fi;
 fi;
 
 # add local lib paths (only support x64 and x86)
@@ -254,7 +267,7 @@ if [[ "$(_csm_cmd_exists nano)" == "true" ]]; then
 else
     _csm_user_package_install nano
     if [[ $? == 0 ]]; then
-        echo "... installed nano"
+        setup_step "... installed nano"
         CSM_NANO=`which nano`
     fi
 fi;
