@@ -17,7 +17,6 @@ fi
 CURL_LOW_TIMEOUT="curl --connect-timeout 1 --max-time 1 "
 COMMIT_HASH=`$CURL_LOW_TIMEOUT -s https://api.github.com/repos/csm10495/dotfiles/branches/master | $PYTHON -c "import sys, json; print(json.loads(sys.stdin.read())['commit']['sha'].upper())" 2>/dev/null`
 if [[ "$COMMIT_HASH" != "" && "$PYTHON" != "" ]]; then
-    printf $COMMIT_HASH | $PYTHON -c "import os, sys; text = open(os.path.expanduser('~/.bashrc'), 'r').read();open(os.path.expanduser('~/.bashrc'), 'w').write(text.replace('REPLACE_WITH_REPO_HASH', sys.stdin.read().strip()))"
 
     $CURL_LOW_TIMEOUT -s https://raw.githubusercontent.com/csm10495/dotfiles/$COMMIT_HASH/home/.bash_profile > ~/.bash_profile
     $CURL_LOW_TIMEOUT -s https://raw.githubusercontent.com/csm10495/dotfiles/$COMMIT_HASH/home/.bashrc > ~/.bashrc

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# export all functions
-set -a
-
 # removing this check for now.
 #if [ "$CSM_BASHRC_EXECUTED" = "1" ]; then
 #    return
@@ -30,6 +27,7 @@ function create_update_checkpoint() {
     setup_step "creating update checkpoint"
     echo $(( `date +%s` + $CSM_UPDATE_CHECKPOINT_IN_SECONDS )) > ~/.csm_update_checkpoint
 }
+export -f create_update_checkpoint
 
 if [[ ! -f ~/.csm_update_checkpoint ]]; then
     create_update_checkpoint
@@ -49,6 +47,7 @@ function _update_dotfiles() {
         source ~/.bashrc
     fi;
 }
+export -f _update_dotfiles
 
 if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
     create_update_checkpoint
@@ -131,6 +130,8 @@ else
     fi
 fi
 
+export -f _csm_user_package_install
+
 # check if i have git
 export CSM_HAS_GIT=0
 if [[ $(which git 2>/dev/null) != "" ]]; then
@@ -169,6 +170,7 @@ function _set_ps1() {
 
     export PS1="\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\]$_GIT_INFO \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
 }
+export -f _set_ps1
 export PROMPT_COMMAND=_set_ps1
 
 export CLICOLOR=1
@@ -275,11 +277,10 @@ fi;
 # to get nano as the default editor in terminal
 export EDITOR=$CSM_NANO
 
-# if we can't find kyrat, don't mess with ssh anymore
+# if we can't find kyrat or ssh, don't mess with ssh anymore
 if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
     if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
         # kyrat will source... don't take its definitions.
-        set +a
         # auto use kyrat as ssh
         unalias _ssh 2>/dev/null
         alias _ssh="`which ssh`"
@@ -289,7 +290,6 @@ if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
             kyrat "$@"
             return $?
         }
-        set -a
     fi;
 fi;
 
@@ -297,6 +297,3 @@ fi;
 if [[ "$CSM_HAS_GIT" == "1" && -f ~/.git-completion.bash ]]; then
     source ~/.git-completion.bash
 fi
-
-# stop exporting all functions
-set +a
