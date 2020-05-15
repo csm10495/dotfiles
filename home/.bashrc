@@ -45,14 +45,18 @@ function _update_dotfiles() {
         # reload (new) self
         export CSM_BASHRC_EXECUTED=0
         source ~/.bashrc
+        return 0
     fi;
+    return 1
 }
 export -f _update_dotfiles
 
 if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
     create_update_checkpoint
     _update_dotfiles
-    return
+    if [[ "$?" == "0" ]]; then
+        return
+    fi
 fi;
 
 # don't execute this again
