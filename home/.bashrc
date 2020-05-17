@@ -120,7 +120,7 @@ else
                 chmod +x ~/.local/notroot
 
                 # Run notroot
-                ~/.local/notroot install $1
+                ~/.local/notroot install $1 &>/dev/null
                 _RET=$?
 
                 # delete copy
