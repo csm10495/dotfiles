@@ -97,6 +97,7 @@ function _csm_user_package_install() {
 
 # ensure .local exists
 mkdir -p ~/.local
+mkdir -p ~/.local/usr/local/bin
 
 # is this a mac?
 if [[ $(uname -s) == "Darwin" ]]; then
@@ -110,7 +111,18 @@ if [[ $(uname -s) == "Darwin" ]]; then
 else
     export CSM_IS_LINUX_LIKE=1
     if [[ "$(_csm_cmd_exists apt-get)" == "true" ]]; then
-        true # todo.
+        curl --connect-timeout 1 --max-time 1 -s "https://raw.githubusercontent.com/Gregwar/notroot/master/notroot" > ~/.local/usr/local/bin/notroot
+        if [[ "$?" == "0" ]]; then
+            chmod +x ~/.local/usr/local/bin/notroot
+            function _csm_user_package_install() {
+                pushd ~ > /dev/null
+                ~/.local/usr/local/bin/notroot $1
+                _RET=$?
+                popd > /dev/null
+                return _RET
+            }
+        fi
+
     elif [[ "$(_csm_cmd_exists yum)" == "true" ]]; then
         # yum supported
         if [[ "$(_csm_cmd_exists yumdownloader)" == "true" ]]; then
