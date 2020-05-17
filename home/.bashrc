@@ -115,10 +115,17 @@ else
         if [[ "$?" == "0" ]]; then
             chmod +x ~/.local/usr/local/bin/notroot
             function _csm_user_package_install() {
-                pushd ~ > /dev/null
+                # Copy notroot to `root of local`. We do this so it installs in the correct .local place
+                cp ~/.local/usr/local/bin/notroot ~/.local/
+                chmod +x ~/.local/notroot
+
+                # Run notroot
                 ~/.local/usr/local/bin/notroot $1
                 _RET=$?
-                popd > /dev/null
+
+                # delete copy
+                rm ~/.local/notroot
+
                 return _RET
             }
         fi
@@ -276,7 +283,7 @@ fi;
 # add kyrat (and a local bin) to path
 mkdir -p ~/.local/usr/local/bin
 mkdir -p ~/.local/usr/bin
-export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/usr/bin:~/.local/usr/local/bin
+export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/usr/bin:~/.local/usr/local/bin:~/.local/usr/:~/.local/usr/games:~/.local/usr/local/games
 
 # i'd greatly prefer nano to vi so see if we can get it.
 CSM_NANO=""
