@@ -120,13 +120,13 @@ else
                 chmod +x ~/.local/notroot
 
                 # Run notroot
-                ~/.local/usr/local/bin/notroot $1
+                ~/.local/notroot $1
                 _RET=$?
 
                 # delete copy
                 rm ~/.local/notroot
 
-                return _RET
+                return $_RET
             }
         fi
 
