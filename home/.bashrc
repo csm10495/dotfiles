@@ -283,7 +283,7 @@ fi;
 # add kyrat (and a local bin) to path
 mkdir -p ~/.local/usr/local/bin
 mkdir -p ~/.local/usr/bin
-export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/usr/bin:~/.local/usr/local/bin:~/.local/usr/:~/.local/usr/games:~/.local/usr/local/games
+export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/usr/bin:~/.local/usr/local/bin:~/.local/usr/:~/.local/usr/games:~/.local/usr/local/games:~/.local/bin
 
 # i'd greatly prefer nano to vi so see if we can get it.
 CSM_NANO=""
