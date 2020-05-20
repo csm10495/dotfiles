@@ -1,5 +1,7 @@
 # dotfiles
 
+![CI](https://github.com/csm10495/dotfiles/workflows/CI/badge.svg)
+
 These are my personal dotfiles. 
 
 To auto-install (THIS WILL OVERWRITE EXISTING ONES!)
