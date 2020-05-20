@@ -92,7 +92,7 @@ function _csm_cmd_not_exists() {
 
 function _csm_user_package_install() {
     # default does nothing
-    return 0
+    return 1
 }
 
 # ensure .local exists
@@ -327,3 +327,6 @@ fi;
 if [[ "$CSM_HAS_GIT" == "1" && -f ~/.git-completion.bash ]]; then
     source ~/.git-completion.bash
 fi
+
+# force a 0 exit code ?
+true
