@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -o xtrace
-
 # removing this check for now.
 #if [ "$CSM_BASHRC_EXECUTED" = "1" ]; then
 #    return
@@ -314,7 +312,7 @@ if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
     if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
         # kyrat will source... don't take its definitions.
         # auto use kyrat as ssh
-        unalias _ssh 2>/dev/null
+        unalias _ssh 2>/dev/null | true
         alias _ssh="`which ssh`"
 
         function ssh() {
@@ -329,6 +327,3 @@ fi;
 if [[ "$CSM_HAS_GIT" == "1" && -f ~/.git-completion.bash ]]; then
     source ~/.git-completion.bash
 fi
-
-# force a 0 exit code ?
-true
