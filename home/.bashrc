@@ -1,5 +1,5 @@
 #!/bin/bash
-set -o xtrace
+
 # removing this check for now.
 #if [ "$CSM_BASHRC_EXECUTED" = "1" ]; then
 #    return
@@ -238,6 +238,8 @@ shopt -s checkwinsize
 
 ## Key bindings
 ### Tested on WSL Bash
+
+if [[ "$(_csm_cmd_exists bind)" == "true" ]]
 
 # Ctrl-Del to delete next word
 bind '"\e[3;5~":kill-word'
