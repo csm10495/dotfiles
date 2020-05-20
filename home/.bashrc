@@ -191,8 +191,15 @@ function _set_ps1() {
         fi
     fi
 
-    export PS1="\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\]$_GIT_INFO \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
+    # show virtualenv info if available
+    _VENV_INFO=""
+    if [[ "$VIRTUAL_ENV" != "" ]]; then
+        _VENV_INFO="(venv:${VIRTUAL_ENV##*/}) "
+    fi
+
+    export PS1="$_VENV_INFO\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\]$_GIT_INFO \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40>
 }
+
 export -f _set_ps1
 export PROMPT_COMMAND=_set_ps1
 
