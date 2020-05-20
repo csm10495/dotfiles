@@ -239,8 +239,6 @@ shopt -s checkwinsize
 ## Key bindings
 ### Tested on WSL Bash
 
-if [[ "$(_csm_cmd_exists bind)" == "true" ]]
-
 # Ctrl-Del to delete next word
 bind '"\e[3;5~":kill-word'
 
