@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -o xtrace
 # removing this check for now.
 #if [ "$CSM_BASHRC_EXECUTED" = "1" ]; then
 #    return
