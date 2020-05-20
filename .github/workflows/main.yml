@@ -26,4 +26,4 @@ jobs:
 
     # Runs a single command using the runners shell
     - name: Test sourcing the bashrc file
-      run: source $GITHUB_WORKSPACE/home/.bashrc
+      run: /bin/bash -c "source $GITHUB_WORKSPACE/home/.bashrc"
