@@ -92,7 +92,7 @@ function _csm_cmd_not_exists() {
 
 function _csm_user_package_install() {
     # default does nothing
-    return 1
+    return 0
 }
 
 # ensure .local exists
