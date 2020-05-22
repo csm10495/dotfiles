@@ -324,11 +324,18 @@ if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
             printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
             __SAVED="$_LAST_TITLE"
             _title "$@"
-            
+            function _undo_title() {
+                _title "$__SAVED"
+            }
+
+            trap _undo_title SIGINT
             kyrat "$@"
             RETCODE=$?
-            _title "$__SAVED"
-            
+
+            # clear trap
+            trap - SIGINT
+            _undo_title
+
             return $RETCODE
         }
     fi;
