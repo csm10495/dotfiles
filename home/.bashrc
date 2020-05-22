@@ -309,6 +309,7 @@ export EDITOR=$CSM_NANO
 
 function _title() {
     echo -en "\033]0;$1\a"
+    export _LAST_TITLE="$1"
 }
 
 # if we can't find kyrat or ssh, don't mess with ssh anymore
@@ -323,7 +324,7 @@ if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
             printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
             _title "$@"
             kyrat "$@"
-            _title 
+            _title "$_LAST_TITLE"
             return $?
         }
     fi;
