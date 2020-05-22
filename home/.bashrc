@@ -309,7 +309,7 @@ export EDITOR=$CSM_NANO
 
 function _title() {
     echo -en "\033]0;$1\a"
-    export _LAST_TITLE="$1"
+    _LAST_TITLE="$1"
 }
 
 # if we can't find kyrat or ssh, don't mess with ssh anymore
