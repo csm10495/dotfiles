@@ -322,9 +322,10 @@ if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
 
         function ssh() {
             printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
+            _SAVED="$_LAST_TITLE"
             _title "$@"
             kyrat "$@"
-            _title "$_LAST_TITLE"
+            _title "$_SAVED"
             return $?
         }
     fi;
