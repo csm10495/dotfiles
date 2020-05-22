@@ -307,6 +307,10 @@ fi;
 # to get nano as the default editor in terminal
 export EDITOR=$CSM_NANO
 
+function _title() {
+    echo -en "\033]0;$1\a"
+}
+
 # if we can't find kyrat or ssh, don't mess with ssh anymore
 if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
     if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
@@ -317,7 +321,9 @@ if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
 
         function ssh() {
             printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
+            _title "$@"
             kyrat "$@"
+            _title 
             return $?
         }
     fi;
