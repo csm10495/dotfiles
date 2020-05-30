@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# removing this check for now.
-#if [ "$CSM_BASHRC_EXECUTED" = "1" ]; then
-#    return
-#fi;
-
 # ensure we have the global profile info
 if [[ -f /etc/profile ]]; then
     source /etc/profile
@@ -43,7 +38,6 @@ function _update_dotfiles() {
         PS1="" bash --norc -c "$_INSTALL_SCRIPT" &>/dev/null
 
         # reload (new) self
-        export CSM_BASHRC_EXECUTED=0
         source ~/.bashrc
         return 0
     fi;
@@ -58,9 +52,6 @@ if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
         return
     fi
 fi;
-
-# don't execute this again
-export CSM_BASHRC_EXECUTED=1
 
 # install.sh should fill in the actual repo hash here.
 export CSM_BASHRC_HASH="REPLACE_WITH_REPO_HASH"
