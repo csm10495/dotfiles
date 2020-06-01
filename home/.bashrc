@@ -214,6 +214,20 @@ export HISTSIZE=10000000
 export LC_ALL=en_US.UTF-8 2>/dev/null
 export LANG=en_US.UTF-8 2>/dev/null
 
+# colored man pages
+# see https://unix.stackexchange.com/questions/119/colors-in-man-pages
+export LESS_TERMCAP_mb=$'\e[1;31m'     # begin bold
+export LESS_TERMCAP_md=$'\e[1;33m'     # begin blink
+export LESS_TERMCAP_so=$'\e[01;44;37m' # begin reverse video
+export LESS_TERMCAP_us=$'\e[01;37m'    # begin underline
+export LESS_TERMCAP_me=$'\e[0m'        # reset bold/blink
+export LESS_TERMCAP_se=$'\e[0m'        # reset reverse video
+export LESS_TERMCAP_ue=$'\e[0m'        # reset underline
+export GROFF_NO_SGR=1                  # for konsole and gnome-terminal
+
+# percentage in manpages
+export MANPAGER='less -s -M +Gg'
+
 #https://superuser.com/questions/848516/long-commands-typed-in-bash-overwrite-the-same-line
 export TERM=xterm
 set horizontal-scroll-mode-off
