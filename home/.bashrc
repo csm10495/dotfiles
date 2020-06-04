@@ -70,7 +70,7 @@ EOF
         fi
     fi
 
-    echo "${_CSM_DATETIME} \"$@\"" >> ${_CSM_DEFAULT_LOG_FILE}
+    echo ${_CSM_DATETIME} "$@" >> ${_CSM_DEFAULT_LOG_FILE}
 }
 
 # install.sh should fill in the actual repo hash here.
