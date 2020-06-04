@@ -34,7 +34,7 @@ function _csm_log() {
 
     if [[ "$LOG_FILES" != "" ]]; then
         # if it is not the first time, check for a need to log rotate
-        if (( "$(wc -c ${_CSM_DEFAULT_LOG_FILE} | cut -d " " -f 1)" > ${_CSM_LOG_FILE_ROTATE_THRESHOLD} )); then
+        if (( "$(wc -c ${_CSM_DEFAULT_LOG_FILE} | xargs | cut -d " " -f 1)" > ${_CSM_LOG_FILE_ROTATE_THRESHOLD} )); then
             _PYTHON_LOGROTATE_OUTPUT=$(${PYTHON} <<EOF
 import os
 import re
