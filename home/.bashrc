@@ -15,7 +15,11 @@ function _csm_log() {
     # make log directory
     _CSM_LOG_DIR=~/.local/var/log/dotfiles
 
-    _CSM_DATETIME=$(date --rfc-3339=ns)
+    _CSM_DATETIME=$(date --rfc-3339=ns 2>/dev/null)
+    if [[ "$_CSM_DATETIME" == "" ]]; then
+        # try gdate for gnu date on mac
+        _CSM_DATETIME=$(gdate --rfc-3339=ns 2>/dev/null)
+    fi
     _CSM_LOG_PREFIX="log"
     _CSM_LOG_SUFFIX=".txt"
     _CSM_DEFAULT_LOG_FILE="${_CSM_LOG_DIR}/${_CSM_LOG_PREFIX}${_CSM_LOG_SUFFIX}"
