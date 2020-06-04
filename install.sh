@@ -26,6 +26,7 @@ if [[ "$COMMIT_HASH" != "" && "$PYTHON" != "" ]]; then
         printf $VERSION | $PYTHON -c "import os, sys; text = open(os.path.expanduser('~/.bashrc'), 'r').read();open(os.path.expanduser('~/.bashrc'), 'w').write(text.replace('REPLACE_WITH_VERSION', sys.stdin.read().strip()))"
     fi
 
+    printf $COMMIT_HASH | $PYTHON -c "import os, sys; text = open(os.path.expanduser('~/.bashrc'), 'r').read();open(os.path.expanduser('~/.bashrc'), 'w').write(text.replace('REPLACE_WITH_REPO_HASH', sys.stdin.read().strip()))"
 else
     # if we can't talk to the github api (maybe we're rate-limited?), just fall back to grabbing master.
     echo "Falling to legacy install behavior (either no commit hash or no python)"
