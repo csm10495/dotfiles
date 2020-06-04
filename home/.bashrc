@@ -1,13 +1,92 @@
 #!/bin/bash
 
+# figure out python version early
+PYTHON=""
+if [[ `which python3 2>/dev/null` != "" ]]; then
+    PYTHON="python3"
+elif [[ `which python 2>/dev/null` != "" ]]; then
+    PYTHON="python"
+elif [[ `which python2 2>/dev/null` != "" ]]; then
+    PYTHON="python2"
+fi
+
+# make logging available as early as possible
+function _csm_log() {
+    # make log directory
+    _CSM_LOG_DIR=~/.local/var/log/dotfiles
+
+    _CSM_DATETIME=$(date --rfc-3339=ns)
+    _CSM_LOG_PREFIX="log"
+    _CSM_LOG_SUFFIX=".txt"
+    _CSM_DEFAULT_LOG_FILE="${_CSM_LOG_DIR}/${_CSM_LOG_PREFIX}${_CSM_LOG_SUFFIX}"
+    _CSM_LOG_FILE_ROTATE_THRESHOLD=1000000
+
+    LOG_FILES=$(set -o pipefail; ls -r ${_CSM_LOG_DIR} 2>/dev/null | grep ${_CSM_LOG_PREFIX})
+
+    # if ls fails, then make sure the dir exists
+    if [[ $? != 0 ]]; then
+        mkdir -p ${_CSM_LOG_DIR}
+    fi
+
+    if [[ "$LOG_FILES" != "" ]]; then
+        # if it is not the first time, check for a need to log rotate
+        if (( "$(wc -c ${_CSM_DEFAULT_LOG_FILE} | cut -d " " -f 1)" > ${_CSM_LOG_FILE_ROTATE_THRESHOLD} )); then
+            _PYTHON_LOGROTATE_OUTPUT=$(${PYTHON} <<EOF
+import os
+import re
+
+LOG_DIR="""${_CSM_LOG_DIR}"""
+LOG_PREFIX="""${_CSM_LOG_PREFIX}"""
+LOG_SUFFIX="""${_CSM_LOG_SUFFIX}"""
+
+for file in reversed(sorted(os.listdir(LOG_DIR))):
+    if file.startswith(LOG_PREFIX) and file.endswith(LOG_SUFFIX):
+        pre = os.path.join(LOG_DIR, file)
+
+        match = re.findall(r'\d+', file)
+        if match:
+            num = int(match[0])
+            newNum = num + 1
+
+            if newNum > 9:
+                print ("LogRotate: %s -> DELETE" % pre)
+                os.remove(pre)
+                continue
+
+        else:
+            # no number, so this is the default file
+            newNum = 0
+
+        post = os.path.join(LOG_DIR, "%s%d%s" % (LOG_PREFIX, newNum, LOG_SUFFIX))
+        print ("LogRotate: %s -> %s" % (pre, post))
+        os.rename(pre, post)
+EOF
+)
+            # ensure default file exists again
+            touch ${_CSM_DEFAULT_LOG_FILE}
+
+            # log the LogRotate messages
+             _csm_log "$_PYTHON_LOGROTATE_OUTPUT"
+        fi
+    fi
+
+    echo "${_CSM_DATETIME} \"$@\"" >> ${_CSM_DEFAULT_LOG_FILE}
+}
+
+# install.sh should fill in the actual repo hash here.
+export CSM_BASHRC_HASH="REPLACE_WITH_REPO_HASH"
+
+# install.sh should fill in the version here.
+export CSM_BASHRC_VERSION="REPLACE_WITH_VERSION"
+
+_csm_log "dotfile startup"
+_csm_log "CSM_BASHRC_HASH:    $CSM_BASHRC_HASH"
+_csm_log "CSM_BASHRC_VERSION: $CSM_BASHRC_VERSION"
+
 # ensure we have the global profile info
 if [[ -f /etc/profile ]]; then
     source /etc/profile
 fi;
-
-function setup_step() {
-    echo "dotfile setup: $1"
-}
 
 # To get it to not ask me to use zsh
 export BASH_SILENCE_DEPRECATION_WARNING=1
@@ -19,7 +98,7 @@ export HOMEBREW_AUTO_UPDATE_SECS=864000
 export CSM_UPDATE_CHECKPOINT_IN_SECONDS=86400
 
 function create_update_checkpoint() {
-    setup_step "creating update checkpoint"
+    _csm_log "creating update checkpoint"
     echo $(( `date +%s` + $CSM_UPDATE_CHECKPOINT_IN_SECONDS )) > ~/.csm_update_checkpoint
 }
 export -f create_update_checkpoint
@@ -32,7 +111,7 @@ chmod 777 ~/.csm_update_checkpoint
 CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 
 function _update_dotfiles() {
-    setup_step "attempting dotfile update"
+    _csm_log "attempting dotfile update"
     _INSTALL_SCRIPT=`curl --connect-timeout 1 --max-time 1 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh`
     if [[ $? == 0 ]]; then
         PS1="" bash --norc -c "$_INSTALL_SCRIPT" &>/dev/null
@@ -52,12 +131,6 @@ if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
         return
     fi
 fi;
-
-# install.sh should fill in the actual repo hash here.
-export CSM_BASHRC_HASH="REPLACE_WITH_REPO_HASH"
-
-# install.sh should fill in the version here.
-export CSM_BASHRC_VERSION="REPLACE_WITH_VERSION"
 
 if [[ "$CSM_BASHRC_VERSION" != "" ]]; then
     if [[ "$CSM_BASHRC_VERSION" != REPLACE_WITH_VERSIO* ]]; then
@@ -261,7 +334,7 @@ bind '"\e[B": history-search-forward'
 # get brew if mac
 if [[ "$CSM_IS_MAC" == "1" ]]; then
     if [[ $(which brew 2>/dev/null) == "" ]]; then
-        setup_step "installing brew"
+        _csm_log "installing brew"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi;
 fi;
@@ -277,10 +350,10 @@ fi;
 
 # Do i have kyrat? If not download it.
 if [[ (! -d ~/.local/share/kyrat) && ("$CSM_HAS_GIT" == "1") ]]; then
-    setup_step "cloning kyrat"
+    _csm_log "cloning kyrat"
     $CSM_TIMEOUT_CMD git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat &>/dev/null
     if [[ "$?" != "0" ]]; then
-        setup_step "kyrat clone failed"
+        _csm_log "kyrat clone failed"
         rm -rf ~/.local/share/kyrat
     fi;
 fi;
@@ -304,7 +377,7 @@ if [[ "$(_csm_cmd_exists nano)" == "true" ]]; then
 else
     _csm_user_package_install nano
     if [[ $? == 0 ]]; then
-        setup_step "... installed nano"
+        _csm_log "... installed nano"
         CSM_NANO=`which nano`
     fi
 fi;
