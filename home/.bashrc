@@ -70,7 +70,22 @@ EOF
         fi
     fi
 
-    echo ${_CSM_DATETIME} "$@" >> ${_CSM_DEFAULT_LOG_FILE}
+    if [[ "$@" != "" ]]; then
+        echo ${_CSM_DATETIME} "$@" >> ${_CSM_DEFAULT_LOG_FILE}
+    else
+        while read line
+        do
+            echo ${_CSM_DATETIME} ${line} >> ${_CSM_DEFAULT_LOG_FILE}
+        done
+    fi
+}
+
+function _csm_log_command() {
+    _csm_log "Calling command: "$@""
+    eval "$@" 2>&1  | sed 's/^/>  /' | _csm_log
+    _RET=${PIPESTATUS[0]}
+    _csm_log ">> Exit Code: ${_RET}"
+    return ${_RET}
 }
 
 # install.sh should fill in the actual repo hash here.
@@ -168,7 +183,7 @@ if [[ $(uname -s) == "Darwin" ]]; then
     export CSM_IS_MAC=1
     if [[ "$(_csm_cmd_exists brew)" == "true" ]]; then
         function _csm_user_package_install() {
-            brew install $1 &> /dev/null
+            _csm_log_command brew install $1
             return $?
         }
     fi
@@ -184,7 +199,7 @@ else
                 chmod +x ~/.local/notroot
 
                 # Run notroot
-                ~/.local/notroot install $1 &>/dev/null
+                _csm_log_command ~/.local/notroot install $1
                 _RET=$?
 
                 # delete copy
@@ -201,12 +216,12 @@ else
                 _TEMP_DIR=`mktemp -d`
                 _RET=-1
                 pushd "$_TEMP_DIR" > /dev/null
-                yumdownloader $1 --resolve &>/dev/null
+                _csm_log_command yumdownloader $1 --resolve
                 popd > /dev/null
                 if [[ $? == 0 ]]; then
                     pushd "$HOME/.local" > /dev/null
                     for filename in $_TEMP_DIR/*.rpm; do
-                        rpm2cpio "$filename" 2>/dev/null | cpio -idv 2>/dev/null
+                        _csm_log_command "rpm2cpio \"$filename\" 2>/dev/null | cpio -idv"
                     done
                     _RET=$?
                     popd > /dev/null
@@ -261,6 +276,9 @@ function _set_ps1() {
         _VENV_INFO="(venv:${VIRTUAL_ENV##*/}) "
     fi
 
+    # add to history right now
+    history -a
+
     export PS1="$_VENV_INFO\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\]$_GIT_INFO \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
 }
 
@@ -314,6 +332,9 @@ alias l='ls -CF'
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
+# append to history, do not overwrite
+shopt -s histappend
+
 ## Key bindings
 ### Tested on WSL Bash
 
@@ -351,7 +372,7 @@ fi;
 # Do i have kyrat? If not download it.
 if [[ (! -d ~/.local/share/kyrat) && ("$CSM_HAS_GIT" == "1") ]]; then
     _csm_log "cloning kyrat"
-    $CSM_TIMEOUT_CMD git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat &>/dev/null
+    _csm_log_command $CSM_TIMEOUT_CMD git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat
     if [[ "$?" != "0" ]]; then
         _csm_log "kyrat clone failed"
         rm -rf ~/.local/share/kyrat
