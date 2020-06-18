@@ -339,6 +339,9 @@ shopt -s checkwinsize
 # append to history, do not overwrite
 shopt -s histappend
 
+# allow recursive globs **
+shopt -s globstar
+
 ## Key bindings
 ### Tested on WSL Bash
 
