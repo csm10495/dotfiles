@@ -334,13 +334,13 @@ alias l='ls -CF'
 
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
-_csm_log_command shopt -s checkwinsize
+shopt -s checkwinsize
 
 # append to history, do not overwrite
-_csm_log_command shopt -s histappend
+shopt -s histappend
 
-# allow recursive globs **
-_csm_log_command shopt -s globstar
+# allow recursive globs ** (go to /dev/null since not every shell supports globstar)
+shopt -s globstar 2>/dev/null
 
 ## Key bindings
 ### Tested on WSL Bash
