@@ -282,8 +282,24 @@ function _set_ps1() {
 
     # add to history right now
     history -a
-
-    export PS1="$_VENV_INFO\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\]$_GIT_INFO \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
+    
+    # add other things that end with _PS1
+    _OTHER_PS1S=""
+    for i in $(awk 'BEGIN{for(v in ENVIRON) print v}' | grep _PS1$); do
+        # make sure there is a space between ps1s
+        if [[ $_OTHER_PS1S != "" ]]; then
+            _OTHER_PS1S="$_OTHER_PS1S ${!i}"
+        else
+            _OTHER_PS1S="${!i}"
+        fi
+    done
+    
+    # make sure there is a space at the end
+    if [[ $_OTHER_PS1S != "" ]]; then
+        _OTHER_PS1S="$_OTHER_PS1S "
+    fi
+    
+    export PS1="$_OTHER_PS1S$_VENV_INFO\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\]$_GIT_INFO \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
 }
 
 export -f _set_ps1
