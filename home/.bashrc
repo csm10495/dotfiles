@@ -443,7 +443,10 @@ if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
         alias _ssh="`which ssh`"
 
         function ssh() {
-            printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
+            if [[ "$HIDE_KYRAT_SSH_BANNER" != "1" ]]; then
+                printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
+            fi;
+            
             __SAVED="$_LAST_TITLE"
             _title "$@"
             function _undo_title() {
