@@ -153,7 +153,10 @@ fi;
 
 if [[ "$CSM_BASHRC_VERSION" != "" ]]; then
     if [[ "$CSM_BASHRC_VERSION" != REPLACE_WITH_VERSIO* ]]; then
-        printf "\e[44mcsm10495/dotfiles: v$CSM_BASHRC_VERSION\e[49m";sleep .25;printf "\r                                        \r"
+        # do not print if not in ptty
+        if [ -t 1 ]; then
+            printf "\e[44mcsm10495/dotfiles: v$CSM_BASHRC_VERSION\e[49m";sleep .25;printf "\r                                        \r"
+        fi
     fi
 fi
 
@@ -361,19 +364,17 @@ shopt -s globstar 2>/dev/null
 ## Key bindings
 ### Tested on WSL Bash
 
-if [ -t 1 ]; then
-    # Ctrl-Del to delete next word
-    bind '"\e[3;5~":kill-word'
+# Ctrl-Del to delete next word
+bind '"\e[3;5~":kill-word' &>/dev/null
 
-    # Ctrl-Backspace to delete last word
-    bind "\C-h":backward-kill-word
+# Ctrl-Backspace to delete last word
+bind "\C-h":backward-kill-word &>/dev/null
 
-    # Arrow up to do a history search back
-    bind '"\e[A": history-search-backward'
+# Arrow up to do a history search back
+bind '"\e[A": history-search-backward' &>/dev/null
 
-    # Arrow down to do a history search forward
-    bind '"\e[B": history-search-forward'
-fi
+# Arrow down to do a history search forward
+bind '"\e[B": history-search-forward' &>/dev/null
 
 # Install and post install steps
 
