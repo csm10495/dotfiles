@@ -361,17 +361,19 @@ shopt -s globstar 2>/dev/null
 ## Key bindings
 ### Tested on WSL Bash
 
-# Ctrl-Del to delete next word
-bind '"\e[3;5~":kill-word'
+if [ -t 1 ]; then
+    # Ctrl-Del to delete next word
+    bind '"\e[3;5~":kill-word'
 
-# Ctrl-Backspace to delete last word
-bind "\C-h":backward-kill-word
+    # Ctrl-Backspace to delete last word
+    bind "\C-h":backward-kill-word
 
-# Arrow up to do a history search back
-bind '"\e[A": history-search-backward'
+    # Arrow up to do a history search back
+    bind '"\e[A": history-search-backward'
 
-# Arrow down to do a history search forward
-bind '"\e[B": history-search-forward'
+    # Arrow down to do a history search forward
+    bind '"\e[B": history-search-forward'
+fi
 
 # Install and post install steps
 
