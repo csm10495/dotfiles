@@ -254,8 +254,6 @@ if [[ $(which git 2>/dev/null) != "" ]]; then
 fi;
 
 # prompt-related
-
-
 function ansi_code_escape_for_ps1(){
     # ansi codes should have \[ in front and \] in back
     #  this fixes issues related to bash knowing the length of the prompt
