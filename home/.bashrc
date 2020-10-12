@@ -129,6 +129,12 @@ fi;
 chmod 777 ~/.csm_update_checkpoint
 CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
 
+# handle case where the update checkpoint file is somehow corrupt
+if ((CSM_UPDATE_CHECKPOINT <= 0)); then
+    _csm_log "Possibly corrupted update checkpoint. Attempting to force update."
+    CSM_UPDATE_CHECKPOINT=0
+fi
+
 function _update_dotfiles() {
     _csm_log "attempting dotfile update"
     _INSTALL_SCRIPT=`curl --connect-timeout 1 --max-time 1 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh`
@@ -247,6 +253,29 @@ if [[ $(which git 2>/dev/null) != "" ]]; then
     export CSM_HAS_GIT=1
 fi;
 
+# prompt-related
+
+
+function ansi_code_escape_for_ps1(){
+    # ansi codes should have \[ in front and \] in back
+    #  this fixes issues related to bash knowing the length of the prompt
+    printf "\["${1}"\]"
+}
+
+function get_ansi_text_color() {
+    RED=$1
+    GREEN=$2
+    BLUE=$3
+    printf $(ansi_code_escape_for_ps1 "\e[38;2;$1;$2;$3m")
+}
+
+_PS1_ANSI_TEXT_RED=$(get_ansi_text_color 255 0 0)
+_PS1_ANSI_TEXT_GREEN=$(get_ansi_text_color 7 166 38)
+_PS1_ANSI_TEXT_BLUE=$(get_ansi_text_color 82 166 235)
+_PS1_ANSI_TEXT_MAGENTA=$(get_ansi_text_color 211 34 214)
+_PS1_ANSI_TEXT_YELLOW=$(get_ansi_text_color 199 188 32)
+_PS1_ANSI_TEXT_RESET=$(ansi_code_escape_for_ps1 "\e[0m")
+
 # to get a colorful terminal
 function _set_ps1() {
     RETVAL=$?
@@ -285,7 +314,7 @@ function _set_ps1() {
 
     # add to history right now
     history -a
-    
+
     # add other things that end with _PS1
     _OTHER_PS1S=""
     for i in $(awk 'BEGIN{for(v in ENVIRON) print v}' | grep _PS1$); do
@@ -296,13 +325,14 @@ function _set_ps1() {
             _OTHER_PS1S="${!i}"
         fi
     done
-    
+
     # make sure there is a space at the end
     if [[ $_OTHER_PS1S != "" ]]; then
         _OTHER_PS1S="$_OTHER_PS1S "
     fi
-    
-    export PS1="$_OTHER_PS1S$_VENV_INFO\[\e[36m\]\u\[\e[m\]@\[\e[32m\]\h\[\e[m\]:\[\e[33m\]\w\[\e[m\]$_GIT_INFO \[\e[97;41m\]$RETVAL\[\e[m\]\[\e[35m\]\\$\[\e[m\]\[\e[40m\] \[\e[m\]"
+
+    # todo... replace other raw ansi escape sequences
+    export PS1="$_OTHER_PS1S$_VENV_INFO${_PS1_ANSI_TEXT_BLUE}\u${_PS1_ANSI_TEXT_RESET}@${_PS1_ANSI_TEXT_GREEN}\h:${_PS1_ANSI_TEXT_YELLOW}\w${_PS1_ANSI_TEXT_RESET}$_GIT_INFO \[\e[97;41m\]$RETVAL${_PS1_ANSI_TEXT_RESET}${_PS1_ANSI_TEXT_MAGENTA}\\$ ${_PS1_ANSI_TEXT_RESET}"
 }
 
 export -f _set_ps1
@@ -395,7 +425,7 @@ elif [[ "$(_csm_cmd_exists gtimeout)" == "true" ]]; then
     CSM_TIMEOUT_CMD="gtimeout -k 1s $CSM_TIMEOUT_CMD_TIMEOUT"
 fi;
 
-# Do i have kyrat? If not download it.
+# Do i have kyrat? If not, download it.
 if [[ (! -d ~/.local/share/kyrat) && ("$CSM_HAS_GIT" == "1") ]]; then
     _csm_log "cloning kyrat"
     _csm_log_command $CSM_TIMEOUT_CMD git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat
@@ -449,7 +479,7 @@ if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
             if [[ "$HIDE_KYRAT_SSH_BANNER" != "1" ]]; then
                 printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
             fi;
-            
+
             __SAVED="$_LAST_TITLE"
             _title "$@"
             function _undo_title() {
