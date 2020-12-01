@@ -394,6 +394,9 @@ shopt -s histappend
 # allow recursive globs ** (go to /dev/null since not every shell supports globstar)
 shopt -s globstar 2>/dev/null
 
+# Set a higher open file limit
+ulimit -S -n 40000
+
 ## Key bindings
 ### Tested on WSL Bash
 
