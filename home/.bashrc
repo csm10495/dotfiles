@@ -395,7 +395,8 @@ shopt -s histappend
 shopt -s globstar 2>/dev/null
 
 # Set a higher open file limit
-ulimit -S -n 40000
+# Some shells don't like huge values, so do a lower one in that case.
+ulimit -S -n 40000 &>/dev/null || ulimit -S -n 4000 &>/dev/null
 
 ## Key bindings
 ### Tested on WSL Bash
