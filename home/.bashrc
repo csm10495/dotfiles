@@ -159,6 +159,8 @@ fi;
 
 if [[ "$CSM_BASHRC_VERSION" != "" ]]; then
     if [[ "$CSM_BASHRC_VERSION" != REPLACE_WITH_VERSIO* ]]; then
+        yes | cp -rf ~/.bash_history ~/.bash_history.bak &>/dev/null
+
         # do not print if not in ptty
         if [ -t 1 ]; then
             printf "\e[44mcsm10495/dotfiles: v$CSM_BASHRC_VERSION\e[49m";sleep .25;printf "\r                                        \r"
