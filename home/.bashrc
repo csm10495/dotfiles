@@ -231,7 +231,7 @@ else
                 _TEMP_DIR=`mktemp -d`
                 _RET=-1
                 pushd "$_TEMP_DIR" > /dev/null
-                _csm_log_command timeout 5 yumdownloader $1 --resolve
+                _csm_log_command timeout 15 yumdownloader $1 --resolve
                 popd > /dev/null
                 if [[ $? == 0 ]]; then
                     pushd "$HOME/.local" > /dev/null
