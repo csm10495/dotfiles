@@ -255,6 +255,13 @@ if [[ $(which git 2>/dev/null) != "" ]]; then
     export CSM_HAS_GIT=1
 fi;
 
+function _get_git_branch() {
+    # https://stackoverflow.com/a/36504296/3824093
+    git rev-parse --abbrev-ref HEAD 2> /dev/null | grep -v HEAD || \
+    git describe --exact-match HEAD 2> /dev/null || \
+    git rev-parse --short HEAD 2> /dev/null
+}
+
 # to get a colorful terminal
 function _set_ps1() {
     RETVAL=$?
@@ -292,10 +299,7 @@ function _set_ps1() {
 
     _GIT_INFO=""
     if [[ "$CSM_HAS_GIT" == 1 ]]; then
-        _BRANCH=`git rev-parse --abbrev-ref HEAD 2>/dev/null`
-        if [[ "$_BRANCH" == "HEAD" ]]; then
-            _BRANCH=`git name-rev --name-only HEAD 2>/dev/null`
-        fi
+        _BRANCH="$(_get_git_branch)"
 
         if [[ "$_BRANCH" != "" ]]; then
             # see https://stackoverflow.com/a/5143914/3824093
