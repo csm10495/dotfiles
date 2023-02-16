@@ -256,8 +256,9 @@ if [[ $(which git 2>/dev/null) != "" ]]; then
 fi;
 
 function _get_git_branch() {
-    # https://stackoverflow.com/a/36504296/3824093
+    # https://stackoverflow.com/a/36504296/3824093 and some edits
     git rev-parse --abbrev-ref HEAD 2> /dev/null | grep -v HEAD || \
+    git name-rev --name-only HEAD 2>/dev/null | grep -v HEAD || \
     git describe --exact-match HEAD 2> /dev/null || \
     git rev-parse --short HEAD 2> /dev/null
 }
