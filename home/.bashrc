@@ -517,3 +517,12 @@ fi;
 if [[ "$CSM_HAS_GIT" == "1" && -f ~/.git-completion.bash ]]; then
     source ~/.git-completion.bash
 fi
+
+# Configure ipython default profile
+# As of ipython 8.9, autocomplete on up/down arrows works differently.
+# This goes back to the old behavior if there is no existing user config file
+_DEFAULT_IPYTHON_CONFIG=~/.ipython/profile_default/ipython_config.py
+if [[ ! -f "${_DEFAULT_IPYTHON_CONFIG}" ]]; then
+    mkdir -p "$(dirname ${_DEFAULT_IPYTHON_CONFIG})"
+    echo "c.TerminalInteractiveShell.autosuggestions_provider = 'AutoSuggestFromHistory'" > "${_DEFAULT_IPYTHON_CONFIG}"
+fi;
