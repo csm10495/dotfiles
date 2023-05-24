@@ -428,6 +428,7 @@ if [[ "$CSM_IS_MAC" == "1" ]]; then
         _csm_log "installing brew"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi;
+    export PATH="$PATH:/opt/homebrew/bin/"
 fi;
 
 # Do i have a command to timeout 'long-running' commands
