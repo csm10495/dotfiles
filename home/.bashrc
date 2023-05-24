@@ -424,11 +424,11 @@ bind '"\e[B": history-search-forward' &>/dev/null
 
 # get brew if mac
 if [[ "$CSM_IS_MAC" == "1" ]]; then
+    export PATH="$PATH:/opt/homebrew/bin/"
     if [[ $(which brew 2>/dev/null) == "" ]]; then
         _csm_log "installing brew"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi;
-    export PATH="$PATH:/opt/homebrew/bin/"
 fi;
 
 # Do i have a command to timeout 'long-running' commands
