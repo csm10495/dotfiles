@@ -13,12 +13,12 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  local_sourcing:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest]
- 
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -27,3 +27,17 @@ jobs:
     # Runs a single command using the runners shell
     - name: Test sourcing the bashrc file
       run: /bin/bash -c "source $GITHUB_WORKSPACE/home/.bashrc"
+
+  docker_testing:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: pip install -r $GITHUB_WORKSPACE/testing/requirements.txt
+
+    - name: Run tests
+      run: pytest $GITHUB_WORKSPACE/testing/tests.py

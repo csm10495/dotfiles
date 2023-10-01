@@ -1,85 +1,40 @@
 #!/bin/bash
 
-# figure out python version early
-PYTHON=""
-if [[ `which python3 2>/dev/null` != "" ]]; then
-    PYTHON="python3"
-elif [[ `which python 2>/dev/null` != "" ]]; then
-    PYTHON="python"
-elif [[ `which python2 2>/dev/null` != "" ]]; then
-    PYTHON="python2"
+# ####################################
+## Logging start
+
+function _csm_now_in_seconds() {
+    date +%s
+}
+
+_CSM_LOG_DIR="$HOME/.local/var/log/dotfiles"
+_CSM_LOG_FILE=${_CSM_LOG_DIR}/log.txt
+_CSM_LOG_FILE_TMP=$_CSM_LOG_FILE.tmp
+_CSM_MAX_LOG_FILE_LINES=10000
+
+# make log directory
+mkdir -p $_CSM_LOG_DIR
+
+# chop if needed (but make sure the file exists.. otherwise skip)
+if [ -f $_CSM_LOG_FILE ]; then
+    tail -n $_CSM_MAX_LOG_FILE_LINES $_CSM_LOG_FILE > $_CSM_LOG_FILE_TMP
+    mv -f $_CSM_LOG_FILE_TMP $_CSM_LOG_FILE
 fi
 
-# make logging available as early as possible
 function _csm_log() {
-    # make log directory
-    _CSM_LOG_DIR=~/.local/var/log/dotfiles
-
     _CSM_DATETIME=$(date --rfc-3339=ns 2>/dev/null)
     if [[ "$_CSM_DATETIME" == "" ]]; then
         # try gdate for gnu date on mac
         _CSM_DATETIME=$(gdate --rfc-3339=ns 2>/dev/null)
     fi
-    _CSM_LOG_PREFIX="log"
-    _CSM_LOG_SUFFIX=".txt"
-    _CSM_DEFAULT_LOG_FILE="${_CSM_LOG_DIR}/${_CSM_LOG_PREFIX}${_CSM_LOG_SUFFIX}"
-    _CSM_LOG_FILE_ROTATE_THRESHOLD=1000000
 
-    LOG_FILES=$(set -o pipefail; ls -r ${_CSM_LOG_DIR} 2>/dev/null | grep ${_CSM_LOG_PREFIX})
-
-    # if ls fails, then make sure the dir exists
-    if [[ $? != 0 ]]; then
-        mkdir -p ${_CSM_LOG_DIR}
-    fi
-
-    if [[ "$LOG_FILES" != "" ]]; then
-        # if it is not the first time, check for a need to log rotate
-        if (( "$(wc -c ${_CSM_DEFAULT_LOG_FILE} | xargs | cut -d " " -f 1)" > ${_CSM_LOG_FILE_ROTATE_THRESHOLD} )); then
-            _PYTHON_LOGROTATE_OUTPUT=$(${PYTHON} <<EOF
-import os
-import re
-
-LOG_DIR="""${_CSM_LOG_DIR}"""
-LOG_PREFIX="""${_CSM_LOG_PREFIX}"""
-LOG_SUFFIX="""${_CSM_LOG_SUFFIX}"""
-
-for file in reversed(sorted(os.listdir(LOG_DIR))):
-    if file.startswith(LOG_PREFIX) and file.endswith(LOG_SUFFIX):
-        pre = os.path.join(LOG_DIR, file)
-
-        match = re.findall(r'\d+', file)
-        if match:
-            num = int(match[0])
-            newNum = num + 1
-
-            if newNum > 9:
-                print ("LogRotate: %s -> DELETE" % pre)
-                os.remove(pre)
-                continue
-
-        else:
-            # no number, so this is the default file
-            newNum = 0
-
-        post = os.path.join(LOG_DIR, "%s%d%s" % (LOG_PREFIX, newNum, LOG_SUFFIX))
-        print ("LogRotate: %s -> %s" % (pre, post))
-        os.rename(pre, post)
-EOF
-)
-            # ensure default file exists again
-            touch ${_CSM_DEFAULT_LOG_FILE}
-
-            # log the LogRotate messages
-             _csm_log "$_PYTHON_LOGROTATE_OUTPUT"
-        fi
-    fi
-
+    # passed args.. log them
     if [[ "$@" != "" ]]; then
-        echo ${_CSM_DATETIME} "$@" >> ${_CSM_DEFAULT_LOG_FILE}
+        echo ${_CSM_DATETIME} [$$] "$@" >> ${_CSM_LOG_FILE}
     else
-        while read line
-        do
-            echo ${_CSM_DATETIME} ${line} >> ${_CSM_DEFAULT_LOG_FILE}
+        # piped stuff.. log the lines piped
+        while read -r line; do
+            echo ${_CSM_DATETIME} [$$] ${line} >> ${_CSM_LOG_FILE}
         done
     fi
 }
@@ -88,7 +43,7 @@ function _csm_log_command() {
     _csm_log "Calling command: "$@""
     eval "$@" 2>&1  | sed 's/^/>  /' | _csm_log
     _RET=${PIPESTATUS[0]}
-    _csm_log ">> Exit Code: ${_RET}"
+    _csm_log ">> Exit Code ($@): ${_RET}"
     return ${_RET}
 }
 
@@ -101,11 +56,45 @@ export CSM_BASHRC_VERSION="REPLACE_WITH_VERSION"
 _csm_log "dotfile startup"
 _csm_log "CSM_BASHRC_HASH:    $CSM_BASHRC_HASH"
 _csm_log "CSM_BASHRC_VERSION: $CSM_BASHRC_VERSION"
+# Logging end
+# ####################################
+# Commands needed elsewhere start =========================================================
+function _csm_run_in_background() {
+    if [ -z "CSM_ALWAYS_FOREGROUND" ]; then
+        # Run the given command in the background without job-control messaging, etc.
+        ( _csm_log_command "$@" & ) & disown &>/dev/null
+    else
+        _csm_log_command "$@"
+    fi
+
+}
+export -f _csm_run_in_background
+# Commands needed elsewhere end ===========================================================
+# ####################################
+# Applied everywhere start ==========================================================
+
+# Configure ipython default profile
+# As of ipython 8.9, autocomplete on up/down arrows works differently.
+# This goes back to the old behavior if there is no existing user config file
+_DEFAULT_IPYTHON_CONFIG=~/.ipython/profile_default/ipython_config.py
+if [[ ! -f "${_DEFAULT_IPYTHON_CONFIG}" ]]; then
+    mkdir -p "$(dirname ${_DEFAULT_IPYTHON_CONFIG})"
+    echo "c.TerminalInteractiveShell.autosuggestions_provider = 'AutoSuggestFromHistory'" > "${_DEFAULT_IPYTHON_CONFIG}"
+fi
 
 # ensure we have the global profile info
 if [[ -f /etc/profile ]]; then
     source /etc/profile
-fi;
+fi
+
+# make certain dirs appear and add them to path
+mkdir -p ~/.local/usr/local/bin
+mkdir -p ~/.local/usr/bin
+export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/usr/bin:~/.local/usr/local/bin:~/.local/usr/:~/.local/usr/games:~/.local/usr/local/games:~/.local/bin
+
+# Applied everywhere end ============================================================
+# ####################################
+# Hardcoded exports start ===========================================================
 
 # To get it to not ask me to use zsh
 export BASH_SILENCE_DEPRECATION_WARNING=1
@@ -116,18 +105,156 @@ export HOMEBREW_AUTO_UPDATE_SECS=864000
 # setup an update checkpoint for my dotfiles
 export CSM_UPDATE_CHECKPOINT_IN_SECONDS=86400
 
+# Hardcoded exports end ===========================================================
+# ####################################
+# Constants setup start ===========================================================
+
+export CSM_IS_MAC=$([[ $(uname -s) == "Darwin" ]] && echo true || echo false)
+export CSM_IS_LINUX_LIKE=$([[ $(uname -s) == "Linux" ]] && echo true || echo false)
+export CSM_HAS_CURL=$(command -v curl &>/dev/null && echo true || echo false)
+export CSM_HAS_GIT=$(command -v git &>/dev/null && echo true || echo false)
+export CSM_HAS_SSH=$(command -v ssh &>/dev/null && echo true || echo false)
+export CSM_HAS_APT_GET=$(command -v apt-get &>/dev/null && echo true || echo false)
+export CSM_HAS_YUM=$(command -v yum &>/dev/null && echo true || echo false)
+export CSM_HAS_BREW=$(command -v brew &>/dev/null && echo true || echo false)
+export CSM_HAS_TIMEOUT_CMD=$(command -v timeout &>/dev/null && echo true || echo false)
+export CSM_HAS_GTIMEOUT_CMD=$(command -v gtimeout &>/dev/null && echo true || echo false)
+export CSM_HAS_AWK=$(command -v awk &>/dev/null && echo true || echo false)
+export CSM_HAS_NANO=$(command -v nano &>/dev/null && echo true || echo false)
+export CSM_NANO=$(command -v nano 2>/dev/null)
+
+# do not use ~ as it won't be expanded when used later
+export CSM_LOCAL_NOTROOT_CMD="$HOME/.local/usr/local/bin/notroot"
+export CSM_LOCAL_NOTROOT_CMD_DL="$HOME/.local/usr/local/bin/notroot.tmp"
+export CSM_KYRAT_DIR="$HOME/.local/share/kyrat"
+
+# These are functions since their values can easily change mid-session
+function _csm_has_yumdownloader_and_dependencies() {
+    if command -v yumdownloader && command -v cpio && command -v rpm2cpio; then
+        return 0
+    fi
+    return 1
+}
+
+export CLICOLOR=1
+export LSCOLORS=ExFxBxDxCxegedabagacad
+
+if [[ $CSM_HAS_NANO == true ]]; then
+    # to get nano as the default editor in terminal if we have it
+    export EDITOR=$CSM_NANO
+fi
+
+if [[ "$CSM_IS_MAC" == true ]]; then
+    alias ls='ls -GFh'
+elif [[ "$CSM_IS_LINUX_LIKE" == true ]]; then
+    alias ls='ls -C --color=auto -h'
+fi
+
+# prefix for commands to have them timeout
+CSM_TIMEOUT_CMD_TIMEOUT='3s'
+CSM_TIMEOUT_CMD=''
+if [[ "$CSM_HAS_TIMEOUT_CMD" == "true" ]]; then
+    CSM_TIMEOUT_CMD="timeout -k 1s $CSM_TIMEOUT_CMD_TIMEOUT"
+elif [[ "$CSM_HAS_GTIMEOUT_CMD" == "true" ]]; then
+    CSM_TIMEOUT_CMD="gtimeout -k 1s $CSM_TIMEOUT_CMD_TIMEOUT"
+fi
+
+# Load git autocompletion if we have git
+if [[ "$CSM_HAS_GIT" == "true" && -f ~/.git-completion.bash ]]; then
+    source ~/.git-completion.bash
+fi
+
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
+# make history huge
+export HISTFILESIZE=10000000
+export HISTSIZE=10000000
+
+# see https://github.com/pypa/pipenv/issues/187
+export LC_ALL=en_US.UTF-8 2>/dev/null
+export LANG=en_US.UTF-8 2>/dev/null
+
+# colored man pages
+# see https://unix.stackexchange.com/questions/119/colors-in-man-pages
+export LESS_TERMCAP_mb=$'\e[1;31m'     # begin bold
+export LESS_TERMCAP_md=$'\e[1;33m'     # begin blink
+export LESS_TERMCAP_so=$'\e[01;44;37m' # begin reverse video
+export LESS_TERMCAP_us=$'\e[01;37m'    # begin underline
+export LESS_TERMCAP_me=$'\e[0m'        # reset bold/blink
+export LESS_TERMCAP_se=$'\e[0m'        # reset reverse video
+export LESS_TERMCAP_ue=$'\e[0m'        # reset underline
+export GROFF_NO_SGR=1                  # for konsole and gnome-terminal
+
+# percentage in manpages
+export MANPAGER='less -s -M +Gg'
+
+#https://superuser.com/questions/848516/long-commands-typed-in-bash-overwrite-the-same-line
+export TERM=xterm
+set horizontal-scroll-mode-off
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# append to history, do not overwrite
+shopt -s histappend
+
+# allow recursive globs ** (go to /dev/null since not every shell supports globstar)
+shopt -s globstar 2>/dev/null
+
+# Set a higher open file limit
+# Some shells don't like huge values, so do a lower one in that case.
+ulimit -S -n 40000 &>/dev/null || ulimit -S -n 4000 &>/dev/null
+
+## Key bindings
+### Tested on WSL Bash
+
+# Ctrl-Del to delete next word
+bind '"\e[3;5~":kill-word' &>/dev/null
+
+# Ctrl-Backspace to delete last word
+bind "\C-h":backward-kill-word &>/dev/null
+
+# Arrow up to do a history search back
+bind '"\e[A": history-search-backward' &>/dev/null
+
+# Arrow down to do a history search forward
+bind '"\e[B": history-search-forward' &>/dev/null
+
+# add local lib paths (only support x64 and x86)
+if [[ "$(uname -m)" == "x86_64" ]]; then
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/usr/lib64/
+#else
+    #tbd fix for arm macs
+    #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/usr/lib/
+fi
+
+# Constants setup end ===========================================================
+# ####################################
+# shell macros start ======================================================
+
+function _title() {
+    echo -en "\033]0;$1\a"
+    _LAST_TITLE="$1"
+}
+
+# shell macros end ========================================================
+# ####################################
+# Updater start ===========================================================
+
 function create_update_checkpoint() {
     _csm_log "creating update checkpoint"
-    echo $(( `date +%s` + $CSM_UPDATE_CHECKPOINT_IN_SECONDS )) > ~/.csm_update_checkpoint
+    echo $(( $(_csm_now_in_seconds) + $CSM_UPDATE_CHECKPOINT_IN_SECONDS )) > ~/.csm_update_checkpoint
 }
 export -f create_update_checkpoint
 
 if [[ ! -f ~/.csm_update_checkpoint ]]; then
     create_update_checkpoint
-fi;
+fi
 
-chmod 777 ~/.csm_update_checkpoint
-CSM_UPDATE_CHECKPOINT=`cat ~/.csm_update_checkpoint`
+CSM_UPDATE_CHECKPOINT=$(cat ~/.csm_update_checkpoint)
 
 # handle case where the update checkpoint file is somehow corrupt
 if ((CSM_UPDATE_CHECKPOINT <= 0)); then
@@ -137,30 +264,31 @@ fi
 
 function _update_dotfiles() {
     _csm_log "attempting dotfile update"
-    _INSTALL_SCRIPT=`curl --connect-timeout 1 --max-time 1 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh`
-    if [[ $? == 0 ]]; then
-        PS1="" bash --norc -c "$_INSTALL_SCRIPT" &>/dev/null
+    if [[ "$CSM_HAS_CURL" == "true" ]]; then
+        _INSTALL_SCRIPT=$(curl --connect-timeout 5 --max-time 5 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh)
+        if [[ $? == 0 ]]; then
+            PS1="" bash --norc -c "$_INSTALL_SCRIPT" &>/dev/null
 
-        # reload (new) self
-        source ~/.bashrc
-        return 0
-    fi;
-    return 1
+            # reload (new) self
+            source ~/.bashrc
+            return 0
+        fi
+        return 1
+    fi
+    _csm_log "couldn't update dotfiles, because curl is not available"
+    return 2
 }
 export -f _update_dotfiles
 
-if (( "$CSM_UPDATE_CHECKPOINT" < `date +%s` )); then
+# trigger update
+if (( "$CSM_UPDATE_CHECKPOINT" < $(_csm_now_in_seconds) )); then
     create_update_checkpoint
-    _update_dotfiles
-    if [[ "$?" == "0" ]]; then
-        return
-    fi
+    _csm_run_in_background _update_dotfiles
 fi;
 
 if [[ "$CSM_BASHRC_VERSION" != "" ]]; then
+    # don't print if we don't have the version
     if [[ "$CSM_BASHRC_VERSION" != REPLACE_WITH_VERSIO* ]]; then
-        yes | cp -rf ~/.bash_history ~/.bash_history.bak &>/dev/null
-
         # do not print if not in ptty
         if [ -t 1 ]; then
             printf "\e[44mcsm10495/dotfiles: v$CSM_BASHRC_VERSION\e[49m";sleep .25;printf "\r                                        \r"
@@ -168,92 +296,105 @@ if [[ "$CSM_BASHRC_VERSION" != "" ]]; then
     fi
 fi
 
-function _csm_cmd_exists() {
-    if [[ "$(which "$1" 2>/dev/null)" != "" ]]; then
-        echo "true"
-    else
-        echo "false"
-    fi;
-}
-
-function _csm_cmd_not_exists() {
-    if [[ "$(which "$1" 2>/dev/null)" != "" ]]; then
-        echo "false"
-    else
-        echo "true"
-    fi;
-}
+# Updater end =============================================================
+# ####################################
+# local package install start ===========================================================
 
 function _csm_user_package_install() {
     # default does nothing
+    _csm_log "default no-op _csm_user_package_install called to install $1"
     return 1
 }
 
-# ensure .local exists
-mkdir -p ~/.local
-mkdir -p ~/.local/usr/local/bin
+if [[ $CSM_IS_MAC == true ]] && [[ $CSM_HAS_BREW == true ]]; then
+    function _csm_user_package_install() {
+        _csm_log_command brew install $1
+    }
+elif [[ $CSM_IS_LINUX_LIKE == true ]] && [[ $CSM_HAS_APT_GET == true ]]; then
+    function _ensure_not_root() {
+        if [ -f "$CSM_LOCAL_NOTROOT_CMD" ]; then
+            return 0
+        fi
 
-# is this a mac?
-if [[ $(uname -s) == "Darwin" ]]; then
-    export CSM_IS_MAC=1
-    if [[ "$(_csm_cmd_exists brew)" == "true" ]]; then
-        function _csm_user_package_install() {
-            _csm_log_command brew install $1
-            return $?
-        }
+        if [[ $CSM_HAS_CURL == true ]]; then
+            if [[ ! -f $CSM_LOCAL_NOTROOT_CMD_DL ]]; then
+                # download notroot to a tmp location first! We can't have something in the real location unless the download is complete.
+                if curl --connect-timeout 5 --max-time 5 -s "https://raw.githubusercontent.com/Gregwar/notroot/master/notroot" > "$CSM_LOCAL_NOTROOT_CMD_DL"; then
+                    chmod +x "$CSM_LOCAL_NOTROOT_CMD_DL"
+                    mv -f $CSM_LOCAL_NOTROOT_CMD_DL $CSM_LOCAL_NOTROOT_CMD
+                    return 0
+                else
+                    _csm_log "Failed to download notroot"
+                fi
+            else
+                _csm_log "notroot download already in progress"
+            fi
+        else
+            _csm_log "couldn't download notroot, because curl is not available"
+        fi
+        return 1
+    }
+
+    function _csm_user_package_install() {
+        if [ -f "$CSM_LOCAL_NOTROOT_CMD" ]; then
+            # Copy notroot to `root of local`. We do this so it installs in the correct .local place
+            # give a random postfix to make this thread safe
+            _LOCAL_NOT_ROOT=~/.local/notroot$RANDOM
+
+            cp "$CSM_LOCAL_NOTROOT_CMD" $_LOCAL_NOT_ROOT
+            chmod +x $_LOCAL_NOT_ROOT
+
+            # Run notroot
+            _csm_log_command $_LOCAL_NOT_ROOT install $1
+            _RET=$?
+
+            # delete copy
+            rm $_LOCAL_NOT_ROOT
+
+            return $_RET
+        else
+            _csm_log "notroot not available.. cannot install $1"
+            return 1
+        fi
+    }
+
+    if [ ! -f $CSM_LOCAL_NOTROOT_CMD ]; then
+        _csm_run_in_background _ensure_not_root
     fi
-else
-    export CSM_IS_LINUX_LIKE=1
-    if [[ "$(_csm_cmd_exists apt-get)" == "true" ]]; then
-        curl --connect-timeout 1 --max-time 1 -s "https://raw.githubusercontent.com/Gregwar/notroot/master/notroot" > ~/.local/usr/local/bin/notroot
-        if [[ "$?" == "0" ]]; then
-            chmod +x ~/.local/usr/local/bin/notroot
-            function _csm_user_package_install() {
-                # Copy notroot to `root of local`. We do this so it installs in the correct .local place
-                cp ~/.local/usr/local/bin/notroot ~/.local/
-                chmod +x ~/.local/notroot
 
-                # Run notroot
-                _csm_log_command ~/.local/notroot install $1
+
+elif [[ $CSM_IS_LINUX_LIKE ]] && [[ $CSM_HAS_YUM ]]; then
+    function _csm_user_package_install() {
+        if _csm_has_yumdownloader_and_dependencies; then
+            _TEMP_DIR=$(mktemp -d)
+            _RET=-1
+            pushd "$_TEMP_DIR" > /dev/null
+            _csm_log_command timeout 25 yumdownloader -y $1 --resolve
+            _RET=$?
+            popd > /dev/null
+            if [[ $_RET == 0 ]]; then
+                pushd "$HOME/.local" > /dev/null
+                for filename in $_TEMP_DIR/*.rpm; do
+                    _csm_log_command "rpm2cpio \"$filename\" 2>/dev/null | cpio -idv"
+                done
                 _RET=$?
-
-                # delete copy
-                rm ~/.local/notroot
-
-                return $_RET
-            }
-        fi
-
-    elif [[ "$(_csm_cmd_exists yum)" == "true" ]]; then
-        # yum supported
-        if [[ "$(_csm_cmd_exists yumdownloader)" == "true" ]]; then
-            function _csm_user_package_install() {
-                _TEMP_DIR=`mktemp -d`
-                _RET=-1
-                pushd "$_TEMP_DIR" > /dev/null
-                _csm_log_command timeout 15 yumdownloader $1 --resolve
                 popd > /dev/null
-                if [[ $? == 0 ]]; then
-                    pushd "$HOME/.local" > /dev/null
-                    for filename in $_TEMP_DIR/*.rpm; do
-                        _csm_log_command "rpm2cpio \"$filename\" 2>/dev/null | cpio -idv"
-                    done
-                    _RET=$?
-                    popd > /dev/null
-                fi;
-                return $_RET
-            }
+            else
+                _csm_log "yumdownloader failed to download $1"
+            fi
+            return $_RET
+        else
+            _csm_log "yumdownloader and dependencies not available.. cannot install $1"
+            return 1
         fi
-    fi
+    }
 fi
 
 export -f _csm_user_package_install
 
-# check if i have git
-export CSM_HAS_GIT=0
-if [[ $(which git 2>/dev/null) != "" ]]; then
-    export CSM_HAS_GIT=1
-fi;
+# local package install end ===========================================================
+# ####################################
+# ps1 manipulation start ===========================================================
 
 function _get_git_branch() {
     # https://stackoverflow.com/a/36504296/3824093 and some edits
@@ -296,7 +437,7 @@ function _set_ps1() {
         RETVAL=""
     else
         RETVAL="$RETVAL$_PS1_ANSI_TEXT_RESET "
-    fi;
+    fi
 
     _GIT_INFO=""
     if [[ "$CSM_HAS_GIT" == 1 ]]; then
@@ -304,7 +445,7 @@ function _set_ps1() {
 
         if [[ "$_BRANCH" != "" ]]; then
             # see https://stackoverflow.com/a/5143914/3824093
-            _OUT=`git status -s -uno 2>/dev/null`
+            _OUT=$(git status -s -uno 2>/dev/null)
 
             # no output means no changes
             if [[ "$_OUT" == "" ]]; then
@@ -327,14 +468,16 @@ function _set_ps1() {
 
     # add other things that end with _PS1
     _OTHER_PS1S=""
-    for i in $(awk 'BEGIN{for(v in ENVIRON) print v}' | grep _PS1$); do
-        # make sure there is a space between ps1s
-        if [[ $_OTHER_PS1S != "" ]]; then
-            _OTHER_PS1S="$_OTHER_PS1S ${!i}"
-        else
-            _OTHER_PS1S="${!i}"
-        fi
-    done
+    if [[ "$CSM_HAS_AWK" == true ]]; then
+        for i in $(awk 'BEGIN{for(v in ENVIRON) print v}' | grep _PS1$); do
+            # make sure there is a space between ps1s
+            if [[ $_OTHER_PS1S != "" ]]; then
+                _OTHER_PS1S="$_OTHER_PS1S ${!i}"
+            else
+                _OTHER_PS1S="${!i}"
+            fi
+        done
+    fi
 
     # make sure there is a space at the end
     if [[ $_OTHER_PS1S != "" ]]; then
@@ -348,182 +491,63 @@ function _set_ps1() {
 export -f _set_ps1
 export PROMPT_COMMAND=_set_ps1
 
-export CLICOLOR=1
-export LSCOLORS=ExFxBxDxCxegedabagacad
-if [[ "$CSM_IS_MAC" == "1" ]]; then
-    alias ls='ls -GFh'
-else
-    alias ls='ls -C --color=auto -h'
-fi;
+# ps1 manipulation end ===========================================================
+# ####################################
+# personalized downloads start ===================================================
 
-# don't put duplicate lines or lines starting with space in the history.
-# See bash(1) for more options
-HISTCONTROL=ignoreboth
-
-# make history huge
-export HISTFILESIZE=10000000
-export HISTSIZE=10000000
-
-# see https://github.com/pypa/pipenv/issues/187
-export LC_ALL=en_US.UTF-8 2>/dev/null
-export LANG=en_US.UTF-8 2>/dev/null
-
-# colored man pages
-# see https://unix.stackexchange.com/questions/119/colors-in-man-pages
-export LESS_TERMCAP_mb=$'\e[1;31m'     # begin bold
-export LESS_TERMCAP_md=$'\e[1;33m'     # begin blink
-export LESS_TERMCAP_so=$'\e[01;44;37m' # begin reverse video
-export LESS_TERMCAP_us=$'\e[01;37m'    # begin underline
-export LESS_TERMCAP_me=$'\e[0m'        # reset bold/blink
-export LESS_TERMCAP_se=$'\e[0m'        # reset reverse video
-export LESS_TERMCAP_ue=$'\e[0m'        # reset underline
-export GROFF_NO_SGR=1                  # for konsole and gnome-terminal
-
-# percentage in manpages
-export MANPAGER='less -s -M +Gg'
-
-#https://superuser.com/questions/848516/long-commands-typed-in-bash-overwrite-the-same-line
-export TERM=xterm
-set horizontal-scroll-mode-off
-
-# some more ls aliases
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
-shopt -s checkwinsize
-
-# append to history, do not overwrite
-shopt -s histappend
-
-# allow recursive globs ** (go to /dev/null since not every shell supports globstar)
-shopt -s globstar 2>/dev/null
-
-# Set a higher open file limit
-# Some shells don't like huge values, so do a lower one in that case.
-ulimit -S -n 40000 &>/dev/null || ulimit -S -n 4000 &>/dev/null
-
-## Key bindings
-### Tested on WSL Bash
-
-# Ctrl-Del to delete next word
-bind '"\e[3;5~":kill-word' &>/dev/null
-
-# Ctrl-Backspace to delete last word
-bind "\C-h":backward-kill-word &>/dev/null
-
-# Arrow up to do a history search back
-bind '"\e[A": history-search-backward' &>/dev/null
-
-# Arrow down to do a history search forward
-bind '"\e[B": history-search-forward' &>/dev/null
-
-# Install and post install steps
-
-# get brew if mac
-if [[ "$CSM_IS_MAC" == "1" ]]; then
-    export PATH="$PATH:/opt/homebrew/bin/"
-    if [[ $(which brew 2>/dev/null) == "" ]]; then
-        _csm_log "installing brew"
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-    fi;
-fi;
-
-# Do i have a command to timeout 'long-running' commands
-CSM_TIMEOUT_CMD_TIMEOUT='3s'
-CSM_TIMEOUT_CMD=''
-if [[ "$(_csm_cmd_exists timeout)" == "true" ]]; then
-    CSM_TIMEOUT_CMD="timeout -k 1s $CSM_TIMEOUT_CMD_TIMEOUT"
-elif [[ "$(_csm_cmd_exists gtimeout)" == "true" ]]; then
-    CSM_TIMEOUT_CMD="gtimeout -k 1s $CSM_TIMEOUT_CMD_TIMEOUT"
-fi;
-
-# Do i have kyrat? If not, download it.
-if [[ (! -d ~/.local/share/kyrat) && ("$CSM_HAS_GIT" == "1") ]]; then
-    _csm_log "cloning kyrat"
-    _csm_log_command $CSM_TIMEOUT_CMD git clone https://github.com/fsquillace/kyrat ~/.local/share/kyrat
-    if [[ "$?" != "0" ]]; then
-        _csm_log "kyrat clone failed"
-        rm -rf ~/.local/share/kyrat
-    fi;
-fi;
-
-# add local lib paths (only support x64 and x86)
-if [[ "$(uname -m)" == "x86_64" ]]; then
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/usr/lib64/
-else
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/usr/lib/
-fi;
-
-# add kyrat (and a local bin) to path
-mkdir -p ~/.local/usr/local/bin
-mkdir -p ~/.local/usr/bin
-export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/usr/bin:~/.local/usr/local/bin:~/.local/usr/:~/.local/usr/games:~/.local/usr/local/games:~/.local/bin
-
-# i'd greatly prefer nano to vi so see if we can get it.
-CSM_NANO=""
-if [[ "$(_csm_cmd_exists nano)" == "true" ]]; then
-    CSM_NANO=`which nano`
-else
-    _csm_user_package_install nano
-    if [[ $? == 0 ]]; then
-        _csm_log "... installed nano"
-        CSM_NANO=`which nano`
-    fi
-fi;
-
-# to get nano as the default editor in terminal
-export EDITOR=$CSM_NANO
-
-function _title() {
-    echo -en "\033]0;$1\a"
-    _LAST_TITLE="$1"
-}
-
-# if we can't find kyrat or ssh, don't mess with ssh anymore
-if [[ "$(_csm_cmd_exists ssh)" == "true" ]]; then
-    if [[ "$(which kyrat 2>/dev/null)" != "" ]]; then
-        # kyrat will source... don't take its definitions.
-        # auto use kyrat as ssh
-        unalias _ssh 2>/dev/null | true
-        alias _ssh="`which ssh`"
-
-        function ssh() {
-            if [[ "$HIDE_KYRAT_SSH_BANNER" != "1" ]]; then
-                printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
-            fi;
-
-            __SAVED="$_LAST_TITLE"
-            _title "$@"
-            function _undo_title() {
-                _title "$__SAVED"
-            }
-
-            trap _undo_title SIGINT
-            kyrat "$@"
-            RETCODE=$?
-
-            # clear trap
-            trap - SIGINT
-            _undo_title
-
-            return $RETCODE
-        }
-    fi;
-fi;
-
-# Load git autocompletion if we have git
-if [[ "$CSM_HAS_GIT" == "1" && -f ~/.git-completion.bash ]]; then
-    source ~/.git-completion.bash
+# Kyrat
+if [ ! -d ~/.local/share/kyrat ] && [[ $CSM_HAS_GIT == true ]]; then
+    function _download_kyrat() {
+        _csm_log "cloning kyrat"
+        if ! $CSM_TIMEOUT_CMD git clone --depth 1 https://github.com/fsquillace/kyrat "$CSM_KYRAT_DIR"; then
+            _csm_log "kyrat clone failed"
+            rm -rf ~/.local/share/kyrat
+            return 1
+        fi
+        _csm_log "kyrat clone succeeded"
+    }
+    _csm_run_in_background _download_kyrat
 fi
 
-# Configure ipython default profile
-# As of ipython 8.9, autocomplete on up/down arrows works differently.
-# This goes back to the old behavior if there is no existing user config file
-_DEFAULT_IPYTHON_CONFIG=~/.ipython/profile_default/ipython_config.py
-if [[ ! -f "${_DEFAULT_IPYTHON_CONFIG}" ]]; then
-    mkdir -p "$(dirname ${_DEFAULT_IPYTHON_CONFIG})"
-    echo "c.TerminalInteractiveShell.autosuggestions_provider = 'AutoSuggestFromHistory'" > "${_DEFAULT_IPYTHON_CONFIG}"
-fi;
+# Nano
+if [[ "$CSM_HAS_NANO" != "true" ]]; then
+    _csm_log "nano not found... attempting to install in the background"
+    _csm_run_in_background _csm_user_package_install nano
+fi
+
+# personalized downloads end =====================================================
+# ####################################
+# functionality overrides start ==================================================
+
+# ssh -> call kyrat
+if [[ $CSM_HAS_SSH == true ]] && [ -d $CSM_KYRAT_DIR ]; then
+    # kyrat will source... don't take its definitions.
+    # auto use kyrat as ssh
+    unalias _ssh 2>/dev/null | true
+    alias _ssh="$(which ssh)"
+
+    function ssh() {
+        if [[ "$HIDE_KYRAT_SSH_BANNER" == "" ]]; then
+            printf "\n\e[1m Using kyrat... use _ssh to use the real ssh executable\e[0m \n\n"
+        fi
+
+        __SAVED="$_LAST_TITLE"
+        _title "$@"
+        function _undo_title() {
+            _title "$__SAVED"
+        }
+
+        trap _undo_title SIGINT
+        kyrat "$@"
+        RETCODE=$?
+
+        # clear trap
+        trap - SIGINT
+        _undo_title
+
+        return $RETCODE
+    }
+fi
+
+# functionality overrides end ====================================================
+# ####################################
