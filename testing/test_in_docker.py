@@ -19,6 +19,7 @@ SUPPORTED_OS_IMAGES = (
     LATEST_SUPPORTED_UBUNTU,
     "ubuntu:20.04",
     "registry.access.redhat.com/ubi7/ubi",
+    "centos:7",
     "mcr.microsoft.com/cbl-mariner/base/core:2.0",
 )
 
