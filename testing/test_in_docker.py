@@ -159,7 +159,7 @@ def test_has_ssh_to_kyrat(container, image):
 
 
 @pytest.mark.parametrize("image", SUPPORTED_OS_IMAGES, indirect=True)
-@flaky(max_runs=100, rerun_filter=lambda *args: time.sleep(2) or True)
+@flaky(max_runs=100, rerun_filter=lambda *args: time.sleep(10) or True)
 def test_update_works(container, image):
     """This test is flaky in case we get throttled by the github api"""
     exit_code, output = container.exec_run(
