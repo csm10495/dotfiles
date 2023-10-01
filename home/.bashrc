@@ -60,9 +60,9 @@ _csm_log "CSM_BASHRC_VERSION: $CSM_BASHRC_VERSION"
 # ####################################
 # Commands needed elsewhere start =========================================================
 function _csm_run_in_background() {
-    if [ -z "CSM_ALWAYS_FOREGROUND" ]; then
+    if [ -z "$CSM_ALWAYS_FOREGROUND" ]; then
         # Run the given command in the background without job-control messaging, etc.
-        ( _csm_log_command "$@" & ) & disown &>/dev/null
+        ( _csm_log_command "$@" >/dev/null 2>&1 & disown ) &>/dev/null
     else
         _csm_log_command "$@"
     fi
