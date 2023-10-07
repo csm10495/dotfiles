@@ -273,6 +273,7 @@ function _update_dotfiles() {
             source ~/.bashrc
             return 0
         fi
+        _csm_log "curl failed to download install.sh"
         return 1
     fi
     _csm_log "couldn't update dotfiles, because curl is not available"
