@@ -41,7 +41,7 @@ function _csm_log() {
 
 function _csm_log_command() {
     _csm_log "Calling command: "$@""
-    eval "$@" 2>&1  | sed 's/^/>  /' | _csm_log
+    eval "$@" 2>&1 | sed 's/^/>  /' | _csm_log
     _RET=${PIPESTATUS[0]}
     _csm_log ">> Exit Code ($@): ${_RET}"
     return ${_RET}
@@ -277,13 +277,16 @@ fi
 function _update_dotfiles() {
     _csm_log "attempting dotfile update"
     if [[ "$CSM_HAS_CURL" == "true" ]]; then
-        _INSTALL_SCRIPT=$(curl --connect-timeout 5 --max-time 5 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh)
-        if [[ $? == 0 ]]; then
-            PS1="" _csm_log_command bash --norc -c "$_INSTALL_SCRIPT"
-
-            # reload (new) self
-            source ~/.bashrc
-            return 0
+        if curl --connect-timeout 5 --max-time 5 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh > /tmp/dotfiles_update.sh; then
+            if PS1="" _csm_log_command bash --norc /tmp/dotfiles_update.sh; then
+                _csm_log "About to source new dotfiles"
+                # reload (new) self
+                source ~/.bashrc
+                return 0
+            else
+                _csm_log "install script failed"
+                return 3
+            fi
         fi
         _csm_log "curl failed to download install.sh"
         return 1

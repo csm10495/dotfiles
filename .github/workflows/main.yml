@@ -38,4 +38,4 @@ jobs:
       run: pip install -r $GITHUB_WORKSPACE/testing/requirements.txt
 
     - name: Run tests
-      run: pytest -vvv $GITHUB_WORKSPACE/testing/
+      run: pytest -s -vvv $GITHUB_WORKSPACE/testing/
