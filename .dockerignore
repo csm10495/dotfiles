@@ -3,5 +3,5 @@
 
 # Allow certain files only
 !/Dockerfile*
-!/home/*.sh
+!/home/
 !/testing/container_setup.sh
