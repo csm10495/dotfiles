@@ -28,6 +28,11 @@ fi
 
 CURL_LOW_TIMEOUT="curl -s --connect-timeout 5 --max-time 5 "
 
+if [[ -n "$GITHUB_TOKEN" ]]; then
+    echo "Adding Github token to curl requests"
+    CURL_LOW_TIMEOUT="$CURL_LOW_TIMEOUT --header \"Authorization: Bearer $GITHUB_TOKEN\""
+fi
+
 if [[ $USE_HASH == true ]]; then
 
     COMMIT_HASH=$($CURL_LOW_TIMEOUT https://api.github.com/repos/csm10495/dotfiles/branches/master | jq -r .commit.sha)

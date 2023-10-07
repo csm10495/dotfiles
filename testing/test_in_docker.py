@@ -94,6 +94,8 @@ def container(
         group_add=["csm10495group"],
         remove=True,
         network_mode="host" if allow_networking else "none",
+        # specifically for ci
+        environment=dict(GITHUB_TOKEN=os.environ.get("GITHUB_TOKEN", "")),
     )
 
     try:
@@ -159,7 +161,7 @@ def test_has_ssh_to_kyrat(container, image):
 
 
 @pytest.mark.parametrize("image", SUPPORTED_OS_IMAGES, indirect=True)
-@flaky(max_runs=100, rerun_filter=lambda *args: time.sleep(10) or True)
+@flaky(max_runs=20, rerun_filter=lambda *args: time.sleep(10) or True)
 def test_update_works(container, image):
     """This test is flaky in case we get throttled by the github api"""
     exit_code, output = container.exec_run(
