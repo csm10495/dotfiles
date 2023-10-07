@@ -224,6 +224,12 @@ bind '"\e[A": history-search-backward' &>/dev/null
 # Arrow down to do a history search forward
 bind '"\e[B": history-search-forward' &>/dev/null
 
+# Case insensitive tab
+bind "set completion-ignore-case on" &>/dev/null
+
+# - and _ are the equivalent for tab-complete
+bind "set completion-map-case on" &>/dev/null
+
 # add local lib paths (only support x64 and x86)
 if [[ "$(uname -m)" == "x86_64" ]]; then
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/usr/lib64/
