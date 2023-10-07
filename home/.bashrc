@@ -121,6 +121,7 @@ export CSM_HAS_TIMEOUT_CMD=$(command -v timeout &>/dev/null && echo true || echo
 export CSM_HAS_GTIMEOUT_CMD=$(command -v gtimeout &>/dev/null && echo true || echo false)
 export CSM_HAS_AWK=$(command -v awk &>/dev/null && echo true || echo false)
 export CSM_HAS_NANO=$(command -v nano &>/dev/null && echo true || echo false)
+export CSM_HAS_THE_FUCK=$(command -v thefuck &>/dev/null && echo true || echo false)
 export CSM_NANO=$(command -v nano 2>/dev/null)
 
 # do not use ~ as it won't be expanded when used later
@@ -239,6 +240,11 @@ function _title() {
     echo -en "\033]0;$1\a"
     _LAST_TITLE="$1"
 }
+
+if [[ $CSM_HAS_THE_FUCK == true ]]; then
+    # add support for https://github.com/nvbn/thefuck
+    eval $(thefuck --alias)
+fi
 
 # shell macros end ========================================================
 # ####################################
