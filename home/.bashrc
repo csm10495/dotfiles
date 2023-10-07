@@ -243,7 +243,7 @@ function _title() {
 
 if [[ $CSM_HAS_THE_FUCK == true ]]; then
     # add support for https://github.com/nvbn/thefuck
-    eval $(thefuck --alias)
+    eval $(thefuck --alias 2>/dev/null)
 fi
 
 # shell macros end ========================================================
