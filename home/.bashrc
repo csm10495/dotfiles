@@ -267,7 +267,7 @@ function _update_dotfiles() {
     if [[ "$CSM_HAS_CURL" == "true" ]]; then
         _INSTALL_SCRIPT=$(curl --connect-timeout 5 --max-time 5 -s https://raw.githubusercontent.com/csm10495/dotfiles/master/install.sh)
         if [[ $? == 0 ]]; then
-            PS1="" bash --norc -c "$_INSTALL_SCRIPT" &>/dev/null
+            PS1="" _csm_log_command bash --norc -c "$_INSTALL_SCRIPT"
 
             # reload (new) self
             source ~/.bashrc
