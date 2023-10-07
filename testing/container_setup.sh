@@ -32,12 +32,12 @@ chown $USER:$GROUP /home/$USER
 if apt-get --version &>/dev/null; then
     echo "apt-get supported"
     apt-get update -y
-    apt-get install -y curl ssh git
+    apt-get install -y curl ssh git jq
 fi
 
 if yum --version &>/dev/null; then
     echo "yum supported"
     # yum-utils: yumdownloader
     # cpio: cpio
-    yum install -y which yum-utils cpio curl openssh-clients git ca-certificates
+    yum install -y which yum-utils cpio curl openssh-clients git ca-certificates jq
 fi

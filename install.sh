@@ -26,7 +26,7 @@ else
     USE_HASH=false
 fi
 
-CURL_LOW_TIMEOUT="curl -s --connect-timeout 1 --max-time 1 "
+CURL_LOW_TIMEOUT="curl -s --connect-timeout 5 --max-time 5 "
 
 if [[ $USE_HASH == true ]]; then
 
@@ -56,7 +56,7 @@ fi
 
 # Not using else since we could set USE_HASH to false in the above
 if [[ $USE_HASH == false ]]; then
-    echo "Falling to legacy install behavior (either no commit hash or no python)"
+    echo "Falling to legacy install behavior (either no commit hash, no sed/jq, or other issue)"
     $CURL_LOW_TIMEOUT https://raw.githubusercontent.com/csm10495/dotfiles/master/home/.bash_profile > /tmp/.bash_profile
     $CURL_LOW_TIMEOUT https://raw.githubusercontent.com/csm10495/dotfiles/master/home/.bashrc > /tmp/.bashrc
 fi
