@@ -39,5 +39,23 @@ if yum --version &>/dev/null; then
     echo "yum supported"
     # yum-utils: yumdownloader
     # cpio: cpio
-    yum install -y which yum-utils cpio curl openssh-clients git ca-certificates jq
+    yum install -y which yum-utils cpio curl openssh-clients git ca-certificates
+fi
+
+if ! command -v jq &>/dev/null; then
+    mkdir -p /usr/local/bin
+    chmod 775 /usr/local/bin
+
+    if [[ $(uname -m) == "x86_64" ]]; then
+        if ! curl -L -o /usr/local/bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7/jq-linux-amd64; then
+            echo "Failed to download jq from github"
+            exit 1
+        fi
+    else
+        # fail the build right now
+        echo "Unknown arch for jq: $(uname -m)"
+        exit 2
+    fi
+    chmod 775 /usr/local/bin/jq
+    chmod +x /usr/local/bin/jq
 fi

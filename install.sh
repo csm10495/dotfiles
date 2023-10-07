@@ -9,6 +9,7 @@ fi
 if command -v jq &>/dev/null; then
     HAS_JQ=true
 else
+    echo "jq is not available"
     HAS_JQ=false
 fi
 
@@ -16,6 +17,7 @@ fi
 if command -v sed &>/dev/null; then
     HAS_SED=true
 else
+    echo "sed is not available"
     HAS_SED=false
 fi
 
