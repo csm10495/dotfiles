@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# Allow certain files only
+!/Dockerfile*
+!/home/*.sh
+!/testing/container_setup.sh
