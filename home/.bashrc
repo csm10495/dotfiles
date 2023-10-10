@@ -456,7 +456,7 @@ function _set_ps1() {
     fi
 
     _GIT_INFO=""
-    if [[ "$CSM_HAS_GIT" == 1 ]]; then
+    if [[ "$CSM_HAS_GIT" == "true" ]]; then
         _BRANCH="$(_get_git_branch)"
 
         if [[ "$_BRANCH" != "" ]]; then
