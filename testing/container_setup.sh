@@ -25,7 +25,7 @@ else
     echo "$USER:x:10000:10001:$USER:/home/$USER:/bin/false" >> /etc/passwd
 fi
 
-chown $USER:$GROUP /home/$USER
+chown -R $USER:$GROUP /home/$USER
 
 # i can't believe some containers are missing which. I've never seen a real host like that.
 
@@ -39,7 +39,7 @@ if yum --version &>/dev/null; then
     echo "yum supported"
     # yum-utils: yumdownloader
     # cpio: cpio
-    yum install -y which yum-utils cpio curl openssh-clients git ca-certificates
+    yum install -y which yum-utils cpio curl openssh-clients git ca-certificates awk
 fi
 
 if ! command -v jq &>/dev/null; then

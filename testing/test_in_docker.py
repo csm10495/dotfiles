@@ -200,3 +200,50 @@ def test_log_chomping(container, image):
 
     # Its not actually 10000 since we chomp then log later in startup.
     assert int(output.strip()) < 10010
+
+
+@pytest.mark.parametrize("image", SUPPORTED_OS_IMAGES, indirect=True)
+def test_git_and_venv_shows_properly_in_ps1(container, image):
+    exit_code, _ = container.exec_run(
+        "git clone https://github.com/csm10495/dotfiles.git"
+    )
+    assert exit_code == 0
+
+    def get_git_dir_prompt() -> str:
+        exit_code, output = container.exec_run(
+            'bash -ic "$PROMPT_COMMAND &>/dev/null && echo $PS1"',
+            workdir="/home/csm10495/dotfiles",
+            tty=True,
+        )
+        assert exit_code == 0
+        return output.decode("utf-8")
+
+    assert "(master)" in get_git_dir_prompt()
+
+    exit_code, _ = container.exec_run(
+        "git checkout -b test_branch123", workdir="/home/csm10495/dotfiles"
+    )
+    assert "(test_branch123)" in get_git_dir_prompt()
+
+    exit_code, _ = container.exec_run("rm README.md", workdir="/home/csm10495/dotfiles")
+    assert exit_code == 0
+    assert "(test_branch123+)" in get_git_dir_prompt()
+
+    # test VIRTUAL_ENV
+    exit_code, _ = container.exec_run(
+        "bash -c 'echo \"export VIRTUAL_ENV=testvenv\" >> ~/.bashrc' ",
+        workdir="/home/csm10495/dotfiles",
+    )
+    prompt = get_git_dir_prompt()
+    assert "(test_branch123+)" in prompt
+    assert "(venv:testvenv)" in prompt
+
+    # test other _PS1
+    exit_code, _ = container.exec_run(
+        "bash -c 'echo \"export CHARLIE_PS1=testps1\" >> ~/.bashrc' ",
+        workdir="/home/csm10495/dotfiles",
+    )
+    prompt = get_git_dir_prompt()
+    assert "(test_branch123+)" in prompt
+    assert "(venv:testvenv)" in prompt
+    assert "testps1" in prompt
