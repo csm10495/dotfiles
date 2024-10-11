@@ -420,34 +420,34 @@ function _get_git_branch() {
     git rev-parse --short HEAD 2> /dev/null
 }
 
+# prompt-related... these things are in this function so if a new shell starts
+#  and this file was carried over by kyrat (and not in ~/.bashrc)
+#  ... this matters because it won't be there to sourced by a subshell and only
+#  $PROMPT_COMMAND is saved, not the other variables.
+#  ... If the colors are not carried over, we get an ugly ps1.
+function ansi_code_escape_for_ps1(){
+    # ansi codes should have \[ in front and \] in back
+    #  this fixes issues related to bash knowing the length of the prompt
+    printf "\["${1}"\]"
+}
+
+function get_ansi_text_color() {
+    RED=$1
+    GREEN=$2
+    BLUE=$3
+    printf $(ansi_code_escape_for_ps1 "\e[38;2;$1;$2;$3m")
+}
+
+_PS1_ANSI_TEXT_RED=$(get_ansi_text_color 255 0 0)
+_PS1_ANSI_TEXT_GREEN=$(get_ansi_text_color 7 166 38)
+_PS1_ANSI_TEXT_BLUE=$(get_ansi_text_color 82 166 235)
+_PS1_ANSI_TEXT_MAGENTA=$(get_ansi_text_color 211 34 214)
+_PS1_ANSI_TEXT_YELLOW=$(get_ansi_text_color 199 188 32)
+_PS1_ANSI_TEXT_RESET=$(ansi_code_escape_for_ps1 "\e[0m")
+
 # to get a colorful terminal
 function _set_ps1() {
     RETVAL=$?
-
-    # prompt-related... these things are in this function so if a new shell starts
-    #  and this file was carried over by kyrat (and not in ~/.bashrc)
-    #  ... this matters because it won't be there to sourced by a subshell and only
-    #  $PROMPT_COMMAND is saved, not the other variables.
-    #  ... If the colors are not carried over, we get an ugly ps1.
-    function ansi_code_escape_for_ps1(){
-        # ansi codes should have \[ in front and \] in back
-        #  this fixes issues related to bash knowing the length of the prompt
-        printf "\["${1}"\]"
-    }
-
-    function get_ansi_text_color() {
-        RED=$1
-        GREEN=$2
-        BLUE=$3
-        printf $(ansi_code_escape_for_ps1 "\e[38;2;$1;$2;$3m")
-    }
-
-    _PS1_ANSI_TEXT_RED=$(get_ansi_text_color 255 0 0)
-    _PS1_ANSI_TEXT_GREEN=$(get_ansi_text_color 7 166 38)
-    _PS1_ANSI_TEXT_BLUE=$(get_ansi_text_color 82 166 235)
-    _PS1_ANSI_TEXT_MAGENTA=$(get_ansi_text_color 211 34 214)
-    _PS1_ANSI_TEXT_YELLOW=$(get_ansi_text_color 199 188 32)
-    _PS1_ANSI_TEXT_RESET=$(ansi_code_escape_for_ps1 "\e[0m")
 
     if [[ $RETVAL == "0" ]]; then
         RETVAL=""
@@ -483,9 +483,10 @@ function _set_ps1() {
     history -a
 
     # add other things that end with _PS1
+    # Specifically skip ones with ITERM since when iterm2's integrations are installed it'll wind up adding the old prompts to the new one.
     _OTHER_PS1S=""
     if [[ "$CSM_HAS_AWK" == true ]]; then
-        for i in $(awk 'BEGIN{for(v in ENVIRON) print v}' | grep _PS1$); do
+        for i in $(awk 'BEGIN{for(v in ENVIRON) print v}' | grep _PS1$ | grep -v ITERM); do
             # make sure there is a space between ps1s
             if [[ $_OTHER_PS1S != "" ]]; then
                 _OTHER_PS1S="$_OTHER_PS1S ${!i}"
