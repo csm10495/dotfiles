@@ -27,6 +27,15 @@ fi
 
 chown -R $USER:$GROUP /home/$USER
 
+# Handle centos7 eol
+if [ -f /etc/centos-release ]; then
+    if grep -q "CentOS Linux release 7" /etc/centos-release; then
+        # https://stackoverflow.com/questions/78692851/could-not-retrieve-mirrorlist-http-mirrorlist-centos-org-release-7arch-x86-6
+        sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+        sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+    fi
+fi
+
 # i can't believe some containers are missing which. I've never seen a real host like that.
 
 if apt-get --version &>/dev/null; then
