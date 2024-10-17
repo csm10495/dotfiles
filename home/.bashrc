@@ -92,6 +92,15 @@ mkdir -p ~/.local/usr/local/bin
 mkdir -p ~/.local/usr/bin
 export PATH=$PATH:~/.local/share/kyrat/bin:~/.local/usr/bin:~/.local/usr/local/bin:~/.local/usr/:~/.local/usr/games:~/.local/usr/local/games:~/.local/bin
 
+# add the brew shellenv if needed
+if [[ -f /opt/homebrew/bin/brew ]]; then
+    # If arm brew: add it to path.
+    eval $(/opt/homebrew/bin/brew shellenv)
+elif [[ -f /usr/local/bin/brew ]]; then
+    # if x86 brew: add it to path.
+    eval $(/usr/local/bin/brew shellenv)
+fi
+
 # Applied everywhere end ============================================================
 # ####################################
 # Hardcoded exports start ===========================================================
