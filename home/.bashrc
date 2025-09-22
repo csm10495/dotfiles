@@ -202,7 +202,7 @@ export MANPAGER='less -s -M +Gg'
 
 #https://superuser.com/questions/848516/long-commands-typed-in-bash-overwrite-the-same-line
 export TERM=xterm
-set horizontal-scroll-mode-off
+bind "set horizontal-scroll-mode off" &>/dev/null
 
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
