@@ -132,6 +132,7 @@ export CSM_HAS_AWK=$(command -v awk &>/dev/null && echo true || echo false)
 export CSM_HAS_NANO=$(command -v nano &>/dev/null && echo true || echo false)
 export CSM_HAS_THE_FUCK=$(command -v thefuck &>/dev/null && echo true || echo false)
 export CSM_NANO=$(command -v nano 2>/dev/null)
+export CSM_IS_INTERACTIVE_TERMINAL=$( [[ $- == *i* ]] && echo true || echo false )
 
 # do not use ~ as it won't be expanded when used later
 export CSM_LOCAL_NOTROOT_CMD="$HOME/.local/usr/local/bin/notroot"
@@ -202,7 +203,11 @@ export MANPAGER='less -s -M +Gg'
 
 #https://superuser.com/questions/848516/long-commands-typed-in-bash-overwrite-the-same-line
 export TERM=xterm
-bind "set horizontal-scroll-mode off" &>/dev/null
+if [[ "$CSM_IS_INTERACTIVE_TERMINAL" == true ]]; then
+    # Only set this bind if we're in an interactive terminal.
+    bind "set horizontal-scroll-mode off" &>/dev/null
+fi
+
 
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
