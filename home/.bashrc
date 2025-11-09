@@ -101,6 +101,16 @@ elif [[ -f /usr/local/bin/brew ]]; then
     eval $(/usr/local/bin/brew shellenv)
 fi
 
+# pyenv setup
+if [[ -d "$HOME/.pyenv" ]]; then
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PATH:$PYENV_ROOT/bin"
+
+    if [[ -z $PYENV_SHELL ]]; then
+        eval "$(pyenv init - bash)"
+    fi
+fi
+
 # Applied everywhere end ============================================================
 # ####################################
 # Hardcoded exports start ===========================================================
